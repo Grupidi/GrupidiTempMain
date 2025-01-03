@@ -1,0 +1,47 @@
+import { useState } from 'react';
+import { Button } from "../button";
+import { Input } from "../input";
+import { Send } from 'lucide-react';
+import { MediaInput } from '../../messages/MediaInput';
+
+interface ChatInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSend: (files?: File[]) => void;
+  placeholder?: string;
+}
+
+export function ChatInput({ value, onChange, onSend, placeholder = "Type a message..." }: ChatInputProps) {
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const handleSend = () => {
+    onSend(selectedFiles);
+    setSelectedFiles([]);
+  };
+
+  return (
+    <div className="p-4 border-t space-y-2">
+      <MediaInput onFilesSelected={files => setSelectedFiles(files)} />
+      <div className="flex gap-2">
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
+        <Button 
+          onClick={handleSend}
+          disabled={!value.trim() && selectedFiles.length === 0}
+          className="bg-pink-500 hover:bg-pink-600"
+        >
+          <Send className="h-5 w-5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
