@@ -11,6 +11,7 @@ import { useGroupImages } from '../../hooks/useGroupImages';
 import { useGroupMembership } from '../../hooks/useGroupMembership';
 import { GroupProfileProps } from '../../types/groupProfile';
 import { isMemberOfGroup } from '../../utils/groups/membership';
+import { parseLocation } from '../../utils/location/distance';
 
 export default function GroupProfilePage({ 
   onNavigate, 
@@ -34,6 +35,27 @@ export default function GroupProfilePage({
       setIsMember(membership);
     }
   }, [currentUser, groupProfile, groupProfile.members]);
+
+  // Add this effect to handle location parsing whenever location is updated
+  useEffect(() => {
+    const validateAndParseLocation = async () => {
+      if (groupProfile.location) {
+        try {
+          // Parse and store the coordinates
+          const coords = await parseLocation(groupProfile.location);
+          
+          // Update the group profile with the validated location data
+          updateGroupProfile(groupProfile.id, {
+            locationCoordinates: coords
+          });
+        } catch (error) {
+          console.error('Error parsing location:', error);
+        }
+      }
+    };
+
+    validateAndParseLocation();
+  }, [groupProfile.location, groupProfile.id, updateGroupProfile]);
 
   const handlers = useGroupProfileHandlers({ 
     groupProfile, 

@@ -10,6 +10,8 @@ import { useProfileHandlers } from "../../hooks/useProfileHandlers";
 import { ProfilePageProps } from "../../types/profile";
 import { getCurrentTier } from "../../utils/tiers";
 import { calculateCounts } from "../../utils/profileUtils";
+import { useEffect } from 'react';
+import { parseLocation } from '../../utils/location/distance';
 
 export default function ProfilePage({ 
   onNavigate, 
@@ -23,6 +25,24 @@ export default function ProfilePage({
   const handlers = useProfileHandlers({ profile, onUpdateProfile, state });
   const currentTier = getCurrentTier(profile.emeraldScore);
   const { groupCount, friendsCount, followingCount } = calculateCounts(profile, groupProfiles, followedUsers);
+
+  useEffect(() => {
+    const validateAndParseLocation = async () => {
+      if (profile.location) {
+        try {
+          const coords = await parseLocation(profile.location);
+          
+          onUpdateProfile("Alice Johnson", {
+            locationCoordinates: coords
+          });
+        } catch (error) {
+          console.error('Error parsing location:', error);
+        }
+      }
+    };
+
+    validateAndParseLocation();
+  }, [profile.location, onUpdateProfile]);
 
   const handleProfileUpdate = (updates: Partial<typeof profile>) => {
     onUpdateProfile("Alice Johnson", updates);
