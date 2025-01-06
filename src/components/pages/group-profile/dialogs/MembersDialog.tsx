@@ -30,37 +30,59 @@ export function MembersDialog({
 }: MembersDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Helper function to normalize usernames
+  const normalizeUsername = (username: string) => {
+    return username.startsWith('@') ? username : `@${username}`;
+  };
+
+  // Fix: Properly handle member removal
   const handleRemoveMember = (memberId: string) => {
     if (memberId === "Alice Johnson") return; // Prevent removing Alice
     const member = memberProfiles[memberId];
     if (!member) return;
     
+    const normalizedUsername = normalizeUsername(member.username);
     const updatedMembers = groupProfile.members.filter(username => 
-      username !== member.username && username !== `@${member.username}`
+      normalizeUsername(username) !== normalizedUsername
     );
     onUpdateMembers(updatedMembers);
   };
 
+  // Fix: Properly handle member addition
   const handleAddMember = (memberId: string) => {
     const member = memberProfiles[memberId];
     if (!member) return;
 
-    if (!isMemberOfGroup(member.username, groupProfile)) {
-      const updatedMembers = [...groupProfile.members, member.username];
+    const normalizedUsername = normalizeUsername(member.username);
+    if (!groupProfile.members.some(m => normalizeUsername(m) === normalizedUsername)) {
+      const updatedMembers = [...groupProfile.members, normalizedUsername];
       onUpdateMembers(updatedMembers);
     }
   };
 
-  // Get current members by matching usernames
+  // Fix: Properly filter current members
   const currentMembers = Object.values(memberProfiles)
-    .filter(member => isMemberOfGroup(member.username, groupProfile));
+    .filter(member => 
+      groupProfile.members.some(m => 
+        normalizeUsername(m) === normalizeUsername(member.username)
+      )
+    );
 
-  // Get available members (not already in the group)
+  // Fix: Properly filter available members
   const availableMembers = Object.values(memberProfiles)
-    .filter(member => !isMemberOfGroup(member.username, groupProfile));
+    .filter(member => 
+      !groupProfile.members.some(m => 
+        normalizeUsername(m) === normalizeUsername(member.username)
+      )
+    );
 
-  // Filter members based on search
-  const filteredMembers = currentMembers.filter(member => 
+  // Filter based on search query
+  const filteredCurrentMembers = currentMembers.filter(member => 
+    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredAvailableMembers = availableMembers.filter(member => 
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -81,9 +103,10 @@ export function MembersDialog({
             className="mb-4"
           />
 
-          {/* Current Members */}
+          {/* Current Members Section */}
           <div className="space-y-4">
-            {filteredMembers.map((member) => (
+            <h3 className="font-semibold text-lg mb-4">Current Members</h3>
+            {filteredCurrentMembers.map((member) => (
               <div
                 key={member.id}
                 className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg border"
@@ -116,12 +139,12 @@ export function MembersDialog({
             ))}
           </div>
 
-          {/* Available Members to Add */}
-          {canEdit && availableMembers.length > 0 && (
+          {/* Available Members Section */}
+          {canEdit && filteredAvailableMembers.length > 0 && (
             <div className="mt-8">
               <h3 className="font-semibold text-lg mb-4">Add Members</h3>
               <div className="space-y-4">
-                {availableMembers.map((member) => (
+                {filteredAvailableMembers.map((member) => (
                   <div
                     key={member.id}
                     className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg border"
