@@ -55,7 +55,7 @@ export default function FindGroupPage({
       setIsLoading(true);
       try {
         let groups = Object.values(discoverableGroupProfiles).filter(group => 
-          !Object.keys(groupProfiles).includes(group.id)
+          !Object.keys(savedGroups).includes(group.id)
         );
 
         if (distanceEnabled && currentLocation) {
@@ -92,7 +92,7 @@ export default function FindGroupPage({
     };
 
     filterGroups();
-  }, [discoverableGroupProfiles, groupProfiles, distanceEnabled, currentLocation, maxDistance]);
+  }, [discoverableGroupProfiles, savedGroups, distanceEnabled, currentLocation, maxDistance]);
 
   // Get current group
   const currentGroup = filteredGroupsList[currentGroupIndex];

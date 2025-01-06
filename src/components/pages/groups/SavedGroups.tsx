@@ -39,7 +39,7 @@ export function SavedGroups({
                   variant="outline" 
                   className="ml-auto"
                   onClick={() => {
-                    onNavigate(groupId);
+                    onNavigate('groupProfile', undefined, groupId);
                     onOpenChange(false);
                   }}
                 >
