@@ -34,6 +34,7 @@ export function GroupProfileHeader({
 }: GroupProfileHeaderProps) {
   // Get valid members using the utility function
   const validMembers = getGroupMembers(group.members, memberProfiles);
+  const canEdit = isMember && !isSavedGroup;
 
   return (
     <div className="bg-pink-500 p-6 relative">
@@ -71,7 +72,10 @@ export function GroupProfileHeader({
               </Button>
             ))}
           </div>
-          <div className="bg-white/20 rounded-lg p-4">
+          <div 
+            className={`bg-white/20 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:bg-white/30' : ''} transition-colors`}
+            onClick={() => canEdit && updateState({ isEditingBio: true })}
+          >
             <h2 className="font-semibold text-white mb-2">About Us</h2>
             <p className="text-sm text-white">{group.bio}</p>
           </div>
