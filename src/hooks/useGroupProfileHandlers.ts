@@ -49,12 +49,14 @@ export function useGroupProfileHandlers({
 
   const handleSaveMembers = (members: string[]) => {
     // Calculate new age stats when members change
-    const ageStats = updateAgeStats(members);
+    const ageStats = calculateGroupAgeStats(members, memberProfiles);
     
     updateGroupProfile(groupProfile.id, { 
       members,
-      ...ageStats
+      ageRange: ageStats.ageRange,
+      avgAge: ageStats.avgAge
     });
+    
     state.updateState({ showMembersDialog: false });
   };
 

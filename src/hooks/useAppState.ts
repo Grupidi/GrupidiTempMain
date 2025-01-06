@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { MemberProfile, GroupProfile, PotentialFollower, FriendRequest } from '../types/profiles';
 import { initialMemberProfiles } from '../data/memberProfiles';
 import { initialGroupProfiles } from '../data/groupProfiles';
@@ -51,6 +51,56 @@ export function useAppState() {
     });
   }, [memberProfiles]);
 
+  // Update group age stats whenever member profiles change
+  useEffect(() => {
+    console.log('Member profiles changed, updating group ages');
+    
+    setGroupProfiles(prevGroups => {
+      const updatedGroups = { ...prevGroups };
+      
+      Object.keys(updatedGroups).forEach(groupId => {
+        const group = updatedGroups[groupId];
+        console.log(`Updating group: ${group.name}`, group);
+
+        if (!group?.members?.length) {
+          console.log(`No members found for group: ${group.name}`);
+          return;
+        }
+
+        const ageStats = calculateGroupAgeStats(group.members, memberProfiles);
+        console.log(`New age stats for ${group.name}:`, ageStats);
+
+        updatedGroups[groupId] = {
+          ...group,
+          ageRange: ageStats.ageRange,
+          avgAge: ageStats.avgAge
+        };
+      });
+      
+      return updatedGroups;
+    });
+  }, [memberProfiles]);
+
+  // Add a function to manually trigger age updates
+  const updateGroupAges = useCallback(() => {
+    setGroupProfiles(prevGroups => {
+      const updatedGroups = { ...prevGroups };
+      
+      Object.keys(updatedGroups).forEach(groupId => {
+        const group = updatedGroups[groupId];
+        const ageStats = calculateGroupAgeStats(group.members, memberProfiles);
+        
+        updatedGroups[groupId] = {
+          ...group,
+          ageRange: ageStats.ageRange,
+          avgAge: ageStats.avgAge
+        };
+      });
+      
+      return updatedGroups;
+    });
+  }, [memberProfiles]);
+
   return {
     memberProfiles,
     groupProfiles,
@@ -59,6 +109,7 @@ export function useAppState() {
     friendRequests,
     updateMemberProfile,
     updateGroupProfile,
+    updateGroupAges,
     setSavedGroups,
     setFollowedUsers,
     setFriendRequests

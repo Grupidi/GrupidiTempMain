@@ -6,6 +6,7 @@ interface ProfileActionsProps {
   setFollowedUsers: React.Dispatch<React.SetStateAction<PotentialFollower[]>>;
   setFriendRequests: React.Dispatch<React.SetStateAction<FriendRequest[]>>;
   setSavedGroups: React.Dispatch<React.SetStateAction<{ [key: string]: GroupProfile }>>;
+  updateGroupAges: () => void;
 }
 
 export function useProfileActions({
@@ -13,7 +14,8 @@ export function useProfileActions({
   updateMemberProfile,
   setFollowedUsers,
   setFriendRequests,
-  setSavedGroups
+  setSavedGroups,
+  updateGroupAges
 }: ProfileActionsProps) {
   const handleAddFriend = (request: FriendRequest) => {
     // Add friend to Alice's profile
@@ -82,6 +84,7 @@ export function useProfileActions({
 
   const handleUpdateProfile = (updates: Partial<MemberProfile>) => {
     updateMemberProfile("Alice Johnson", updates);
+    updateGroupAges();
   };
 
   return {
