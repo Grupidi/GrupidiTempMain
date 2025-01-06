@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../dialog";
 import { Button } from "../button";
 import { Textarea } from "../textarea";
 import { LocationInput } from "../location/LocationInput";
-import { InterestInput } from "../InterestInput";
+import { MultiSelectInput } from "../MultiSelectInput";
 import { X } from 'lucide-react';
 import { interestSuggestions } from "../../../data/interestSuggestions";
 import { quirkSuggestions } from "../../../data/quirkSuggestions";
@@ -68,32 +68,17 @@ export function ProfileDialogs({ profile, state, handlers }: ProfileDialogsProps
       {/* Edit Interests Dialog */}
       <Dialog open={state.isEditingInterests} onOpenChange={state.setIsEditingInterests}>
         <DialogContent className="sm:max-w-[900px]">
-          <DialogHeader className="p-8 pb-0">
+          <DialogHeader>
             <DialogTitle className="text-2xl font-semibold">Edit Interests & Hobbies</DialogTitle>
           </DialogHeader>
           <div className="p-8 space-y-6">
-            <InterestInput
-              value={state.newInterest}
+            <MultiSelectInput
+              value={state.editedInterests}
+              onChange={(interests) => state.setEditedInterests(interests)}
               suggestions={interestSuggestions}
-              onChange={state.setNewInterest}
-              onAdd={handlers.handleAddInterest}
-              placeholder="Add new interest..."
+              placeholder="Add interests or select from suggestions..."
+              chipClassName="bg-pink-100 text-pink-800"
             />
-            <div className="space-y-2">
-              {state.editedInterests.map((interest: string, index: number) => (
-                <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                  <span>{interest}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handlers.handleRemoveInterest(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => state.setIsEditingInterests(false)}>
                 Cancel
@@ -109,32 +94,17 @@ export function ProfileDialogs({ profile, state, handlers }: ProfileDialogsProps
       {/* Edit Quirks Dialog */}
       <Dialog open={state.isEditingQuirks} onOpenChange={state.setIsEditingQuirks}>
         <DialogContent className="sm:max-w-[900px]">
-          <DialogHeader className="p-8 pb-0">
+          <DialogHeader>
             <DialogTitle className="text-2xl font-semibold">Edit Personal Quirks</DialogTitle>
           </DialogHeader>
           <div className="p-8 space-y-6">
-            <InterestInput
-              value={state.newQuirk}
+            <MultiSelectInput
+              value={state.editedQuirks}
+              onChange={(quirks) => state.setEditedQuirks(quirks)}
               suggestions={quirkSuggestions}
-              onChange={state.setNewQuirk}
-              onAdd={handlers.handleAddQuirk}
-              placeholder="Add new quirk..."
+              placeholder="Add quirks or select from suggestions..."
+              chipClassName="bg-blue-100 text-blue-800"
             />
-            <div className="space-y-2">
-              {state.editedQuirks.map((quirk: string, index: number) => (
-                <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                  <span>{quirk}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handlers.handleRemoveQuirk(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => state.setIsEditingQuirks(false)}>
                 Cancel
