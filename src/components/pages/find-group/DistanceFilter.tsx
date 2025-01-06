@@ -12,14 +12,15 @@ export function DistanceFilter({ isEnabled, onToggle, value, onChange }: Distanc
   return (
     <div className="p-4 border-b border-pink-200 bg-pink-100">
       <div className="flex items-center justify-between mb-4">
+        <label className="text-sm font-medium text-pink-800">
+          Distance Filter
+        </label>
         <Switch
           checked={isEnabled}
           onCheckedChange={onToggle}
         />
-        <span className="text-sm text-gray-600 ml-2">
-          {isEnabled ? 'Distance Filter Enabled' : 'Distance Filter Disabled'}
-        </span>
       </div>
+
       {isEnabled && (
         <>
           <div className="flex items-center justify-between mb-2 text-pink-800">
