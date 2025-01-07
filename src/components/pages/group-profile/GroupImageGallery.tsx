@@ -15,6 +15,9 @@ interface GroupImageGalleryProps {
   onReplaceImage: (index: number) => void;
   onDeleteImage: (index: number) => void;
   isMember: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  replaceFileInputRef: React.RefObject<HTMLInputElement>;
+  handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function ImageGallery({
@@ -28,7 +31,10 @@ export function ImageGallery({
   onAddImage,
   onReplaceImage,
   onDeleteImage,
-  isMember
+  isMember,
+  fileInputRef,
+  replaceFileInputRef,
+  handleFileSelect
 }: GroupImageGalleryProps) {
   if (!images.length) return null;
 
@@ -81,6 +87,20 @@ export function ImageGallery({
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
             {currentIndex + 1} / {images.length}
           </div>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <input
+            type="file"
+            ref={replaceFileInputRef}
+            accept="image/*"
+            className="hidden"
+          />
         </div>
       </DialogContent>
     </Dialog>

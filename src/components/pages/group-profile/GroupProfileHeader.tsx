@@ -94,6 +94,9 @@ export function GroupProfileHeader({
         onReplaceImage={imageHandlers.handleReplaceImage}
         onDeleteImage={imageHandlers.handleDeleteImage}
         isMember={isMember}
+        fileInputRef={imageHandlers.fileInputRef}
+        replaceFileInputRef={imageHandlers.replaceFileInputRef}
+        handleFileSelect={imageHandlers.handleFileSelect}
       />
     </div>
   );
