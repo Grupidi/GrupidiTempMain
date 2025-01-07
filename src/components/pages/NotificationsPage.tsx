@@ -54,11 +54,29 @@ export default function NotificationsPage({
   };
 
   // Handle sending a message
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, files?: File[], media?: { type: string; url: string }[]) => {
     if (!selectedConversation) return;
 
-    const message = sendMessage(selectedConversation, currentUser.id, content);
-    addMessage(selectedConversation, message);
+    try {
+      // Create message with media
+      const message = {
+        id: Date.now().toString(),
+        senderId: currentUser.id,
+        content,
+        media,
+        timestamp: Date.now()
+      };
+
+      // Add message to conversation
+      addMessage(selectedConversation, content, currentUser.id, media);
+      
+      // Optional: Add to conversations state if you have it
+      if (sendMessage) {
+        sendMessage(selectedConversation, currentUser.id, content);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   // Get the other participant in a conversation

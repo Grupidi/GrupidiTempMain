@@ -7,6 +7,8 @@ import { Message } from '../../types/conversation';
 import { MemberProfile } from '../../types/profiles';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from '../ui/chat/ChatInput';
+import { processImageFile } from '../../utils/images/processing';
+import { createMessage } from '../../utils/conversations/messages';
 
 interface ChatDialogProps {
   isOpen: boolean;
@@ -15,7 +17,7 @@ interface ChatDialogProps {
   otherUser: MemberProfile | null;
   conversationId: string;
   messages: Message[];
-  onSendMessage: (content: string, files?: File[]) => void;
+  onSendMessage: (content: string, files?: File[], media?: { type: string; url: string }[]) => void;
 }
 
 export function ChatDialog({
@@ -28,11 +30,31 @@ export function ChatDialog({
   onSendMessage
 }: ChatDialogProps) {
   const [messageText, setMessageText] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSend = (files?: File[]) => {
+  const handleSend = async (files?: File[]) => {
     if (messageText.trim() || files?.length) {
-      onSendMessage(messageText, files);
-      setMessageText('');
+      try {
+        const mediaPromises = files?.map(async (file) => {
+          const url = await processImageFile(file);
+          return {
+            type: file.type.startsWith('video/') ? 'video' : 'image',
+            url
+          };
+        }) || [];
+
+        const media = await Promise.all(mediaPromises);
+        
+        const message = createMessage(currentUser.id, messageText, media);
+        console.log('Created message:', message);
+        
+        onSendMessage(message.content, files, message.media);
+        setMessageText('');
+        setError(null);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setError('Failed to send message. Please try again.');
+      }
     }
   };
 
@@ -71,6 +93,12 @@ export function ChatDialog({
             </div>
           </div>
         </DialogHeader>
+
+        {error && (
+          <div className="p-2 bg-red-100 text-red-600 text-sm">
+            {error}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (

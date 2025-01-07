@@ -1,57 +1,62 @@
 import { useState } from 'react';
-import { Conversation, Message } from '../types/conversation';
-import { MemberProfile } from '../types/profiles';
-import { getConversationId } from '../utils/conversations/participants';
-import { createMessage } from '../utils/conversations/messages';
-import { 
-  initializeConversation, 
-  updateConversationWithMessage, 
-  markConversationAsRead 
-} from '../utils/conversations/state';
+import { Message } from '../types/conversation';
 
 export function useConversations() {
-  const [conversations, setConversations] = useState<{ [key: string]: Conversation }>({});
+  const [conversations, setConversations] = useState<{
+    [key: string]: {
+      id: string;
+      participants: string[];
+      lastMessage: Message | null;
+      unreadCount: number;
+    };
+  }>({});
 
-  const startConversation = (currentUser: MemberProfile, recipient: MemberProfile) => {
-    const conversationId = getConversationId(currentUser.id, recipient.id);
+  const startConversation = (currentUser: any, otherUser: any) => {
+    const conversationId = [currentUser.id, otherUser.id].sort().join('_');
     
     if (!conversations[conversationId]) {
-      const newConversation = initializeConversation([currentUser.id, recipient.id]);
       setConversations(prev => ({
         ...prev,
-        [conversationId]: newConversation
+        [conversationId]: {
+          id: conversationId,
+          participants: [currentUser.id, otherUser.id],
+          lastMessage: null,
+          unreadCount: 0
+        }
       }));
     }
-
+    
     return conversationId;
   };
 
   const sendMessage = (conversationId: string, senderId: string, content: string) => {
-    const message = createMessage(senderId, content);
+    const message = {
+      id: Date.now().toString(),
+      senderId,
+      content,
+      timestamp: Date.now()
+    };
 
-    setConversations(prev => {
-      const conversation = prev[conversationId];
-      if (!conversation) return prev;
-
-      return {
-        ...prev,
-        [conversationId]: updateConversationWithMessage(conversation, message)
-      };
-    });
+    setConversations(prev => ({
+      ...prev,
+      [conversationId]: {
+        ...prev[conversationId],
+        lastMessage: message,
+        unreadCount: prev[conversationId].unreadCount + 1
+      }
+    }));
 
     return message;
   };
 
   const markAsRead = (conversationId: string) => {
-    setConversations(prev => {
-      const conversation = prev[conversationId];
-      if (!conversation) return prev;
-
-      return {
-        ...prev,
-        [conversationId]: markConversationAsRead(conversation)
-      };
-    });
+    setConversations(prev => ({
+      ...prev,
+      [conversationId]: {
+        ...prev[conversationId],
+        unreadCount: 0
+      }
+    }));
   };
 
   return {

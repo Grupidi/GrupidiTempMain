@@ -3,6 +3,10 @@ export interface Message {
   senderId: string;
   content: string;
   timestamp: number;
+  media?: {
+    type: 'image' | 'video';
+    url: string;
+  }[];
 }
 
 export interface Conversation {
