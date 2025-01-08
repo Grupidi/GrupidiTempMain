@@ -13,23 +13,27 @@ export default function GroupChatDetailsPage({
   memberProfiles 
 }: GroupChatDetailsProps) {
   const [activeTab, setActiveTab] = useState<'members' | 'media'>('members');
+  const [activeMediaTab, setActiveMediaTab] = useState<'photos' | 'gifs' | 'voice' | 'polls' | 'links'>('photos');
 
-  // Get member usernames from the profiles
-  const memberUsernames = groupProfile.members.map(member => {
-    // If it's a display name, find the corresponding username
-    if (member.includes(' ')) {
+  // Convert display names to usernames for the group members
+  const updatedGroupProfile = {
+    ...groupProfile,
+    members: groupProfile.members.map(member => {
+      // If it's a username already, return it
+      if (!member.includes(' ')) return member;
+      
+      // Find the corresponding username for the display name
       const profile = Object.values(memberProfiles).find(p => p.name === member);
       return profile ? profile.username : member;
-    }
-    // Remove @ if present
-    return member.replace('@', '');
-  });
+    })
+  };
 
-  console.log('GroupChatDetailsPage received:', {
-    groupProfile,
-    memberProfiles,
+  console.log('GroupChatDetailsPage state:', {
+    activeTab,
+    activeMediaTab,
     originalMembers: groupProfile.members,
-    normalizedUsernames: memberUsernames
+    updatedMembers: updatedGroupProfile.members,
+    memberProfiles
   });
 
   return (
@@ -48,7 +52,7 @@ export default function GroupChatDetailsPage({
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'members' | 'media')} className="flex-1">
         <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1">
           <TabsTrigger value="members" className="data-[state=active]:bg-white rounded-md">
-            Members ({memberUsernames.length})
+            Members ({updatedGroupProfile.members.length})
           </TabsTrigger>
           <TabsTrigger value="media" className="data-[state=active]:bg-white rounded-md">
             Media
@@ -57,7 +61,7 @@ export default function GroupChatDetailsPage({
 
         <TabsContent value="members" className="flex-1 overflow-y-auto">
           <MembersList
-            members={memberUsernames}
+            members={updatedGroupProfile.members}
             memberProfiles={memberProfiles}
             onViewProfile={(username) => onNavigate('memberProfile', username)}
           />
@@ -65,9 +69,9 @@ export default function GroupChatDetailsPage({
 
         <TabsContent value="media" className="flex-1 overflow-hidden">
           <MediaGallery
-            activeTab="photos"
-            onTabChange={() => {}}
-            groupProfile={groupProfile}
+            activeTab={activeMediaTab}
+            onTabChange={(tab) => setActiveMediaTab(tab)}
+            groupProfile={updatedGroupProfile}
             memberProfiles={memberProfiles}
           />
         </TabsContent>

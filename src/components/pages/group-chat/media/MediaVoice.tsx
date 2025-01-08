@@ -2,20 +2,43 @@ import { useState } from 'react';
 import { MediaProps } from './types';
 
 export function MediaVoice({ groupProfile, memberProfiles }: MediaProps) {
-  const [voiceMemos] = useState(() =>
-    groupProfile.members.flatMap(memberId => {
+  const [voiceMemos] = useState(() => {
+    const memberMemos = groupProfile.members.map(memberId => {
       const member = memberProfiles[memberId];
-      if (!member) return [];
-      return [
-        { 
-          id: `${memberId}-1`, 
-          duration: '0:45', 
-          sender: member.name, 
+      if (!member) return null;
+      
+      const voiceExamples = {
+        'alice_adventurer': {
+          id: 'alice-voice-1',
+          duration: '0:45',
+          sender: 'Alice Johnson',
           date: '2024-03-15'
+        },
+        'bob_hiker': {
+          id: 'bob-voice-1',
+          duration: '1:30',
+          sender: 'Bob Smith',
+          date: '2024-03-15'
+        },
+        'carol_reads': {
+          id: 'carol-voice-1',
+          duration: '1:20',
+          sender: 'Carol White',
+          date: '2024-03-14'
+        },
+        'dave_foodie': {
+          id: 'dave-voice-1',
+          duration: '0:55',
+          sender: 'David Brown',
+          date: '2024-03-13'
         }
-      ];
-    })
-  );
+      };
+
+      return voiceExamples[member.username];
+    }).filter(Boolean);
+
+    return memberMemos;
+  });
 
   return (
     <div className="p-4">

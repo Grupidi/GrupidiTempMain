@@ -2,21 +2,51 @@ import { useState } from 'react';
 import { MediaProps } from './types';
 
 export function MediaPhotos({ groupProfile, memberProfiles }: MediaProps) {
-  const [photos] = useState(() => 
-    groupProfile.members.flatMap(memberId => {
+  console.log('MediaPhotos received:', {
+    groupProfile,
+    memberProfiles,
+    members: groupProfile.members
+  });
+
+  const [photos] = useState(() => {
+    const memberPhotos = groupProfile.members.map(memberId => {
       const member = memberProfiles[memberId];
-      if (!member) return [];
-      return [
-        { 
-          id: `${memberId}-1`, 
-          url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3', 
-          type: 'image', 
-          date: '2024-03-15',
-          sender: member.name
+      console.log('Processing member:', { memberId, member });
+      if (!member) return null;
+      
+      const photoExamples = {
+        'alice_adventurer': {
+          id: 'alice-1',
+          url: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3',
+          sender: 'Alice Johnson',
+          date: '2024-03-15'
+        },
+        'bob_hiker': {
+          id: 'bob-1',
+          url: 'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?ixlib=rb-4.0.3',
+          sender: 'Bob Smith',
+          date: '2024-03-15'
+        },
+        'carol_reads': {
+          id: 'carol-1',
+          url: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3',
+          sender: 'Carol White',
+          date: '2024-03-14'
+        },
+        'dave_foodie': {
+          id: 'dave-1',
+          url: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?ixlib=rb-4.0.3',
+          sender: 'David Brown',
+          date: '2024-03-13'
         }
-      ];
-    })
-  );
+      };
+
+      return photoExamples[member.username];
+    }).filter(Boolean);
+
+    console.log('Final photos:', memberPhotos);
+    return memberPhotos;
+  });
 
   return (
     <div className="p-4">

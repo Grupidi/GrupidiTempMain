@@ -4,30 +4,51 @@ import { ExternalLink } from 'lucide-react';
 import { Button } from '../../../ui/button';
 
 export function MediaLinks({ groupProfile, memberProfiles }: MediaProps) {
-  const [links] = useState(() =>
-    groupProfile.members.flatMap(memberId => {
+  const [links] = useState(() => {
+    const memberLinks = groupProfile.members.map(memberId => {
       const member = memberProfiles[memberId];
-      if (!member) return [];
-      return [
-        { 
-          id: `${memberId}-1`, 
-          url: 'https://example.com/shared-article',
-          title: 'Interesting Article About Group Activities',
-          preview: 'A comprehensive guide to organizing successful group events...',
-          date: '2024-03-15',
-          sender: member.name
+      if (!member) return null;
+      
+      const linkExamples = {
+        'alice_adventurer': {
+          id: 'alice-link-1',
+          url: 'https://example.com/hiking-guide',
+          title: 'Best Hiking Trails in Bay Area',
+          preview: 'A comprehensive guide to the most scenic hiking trails...',
+          sender: 'Alice Johnson',
+          date: '2024-03-15'
         },
-        { 
-          id: `${memberId}-2`, 
-          url: 'https://example.com/cool-place',
-          title: 'New Hangout Spot Opening Soon',
-          preview: 'Check out this amazing new venue perfect for our next meetup!',
-          date: '2024-03-14',
-          sender: member.name
+        'bob_hiker': {
+          id: 'bob-link-1',
+          url: 'https://example.com/hiking-gear',
+          title: 'Essential Hiking Gear Guide',
+          preview: 'Everything you need to know about hiking equipment...',
+          sender: 'Bob Smith',
+          date: '2024-03-15'
+        },
+        'carol_reads': {
+          id: 'carol-link-1',
+          url: 'https://example.com/book-review',
+          title: 'Monthly Book Review: Classic Literature',
+          preview: 'An in-depth analysis of this month\'s book club selection...',
+          sender: 'Carol White',
+          date: '2024-03-14'
+        },
+        'dave_foodie': {
+          id: 'dave-link-1',
+          url: 'https://example.com/reading-snacks',
+          title: 'Perfect Snacks for Book Club Meetings',
+          preview: 'Curated selection of snacks that won\'t damage books...',
+          sender: 'David Brown',
+          date: '2024-03-13'
         }
-      ];
-    })
-  );
+      };
+
+      return linkExamples[member.username];
+    }).filter(Boolean);
+
+    return memberLinks;
+  });
 
   const handleOpenLink = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');

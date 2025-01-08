@@ -2,22 +2,51 @@ import { useState } from 'react';
 import { MediaProps } from './types';
 
 export function MediaPolls({ groupProfile, memberProfiles }: MediaProps) {
-  const [polls] = useState(() =>
-    groupProfile.members.flatMap(memberId => {
+  const [polls] = useState(() => {
+    const memberPolls = groupProfile.members.map(memberId => {
       const member = memberProfiles[memberId];
-      if (!member) return [];
-      return [
-        { 
-          id: `${memberId}-1`, 
-          question: 'Next meetup location?', 
-          options: ['Park', 'Coffee Shop', 'Library'],
+      if (!member) return null;
+      
+      const pollExamples = {
+        'alice_adventurer': {
+          id: 'alice-poll-1',
+          question: 'Next hiking location?',
+          options: ['Mount Tam', 'Angel Island', 'Muir Woods'],
           votes: [3, 2, 1],
-          date: '2024-03-15',
-          sender: member.name
+          sender: 'Alice Johnson',
+          date: '2024-03-15'
+        },
+        'bob_hiker': {
+          id: 'bob-poll-1',
+          question: 'Best time for weekend hike?',
+          options: ['Early Morning', 'Afternoon', 'Sunset'],
+          votes: [4, 1, 2],
+          sender: 'Bob Smith',
+          date: '2024-03-15'
+        },
+        'carol_reads': {
+          id: 'carol-poll-1',
+          question: 'Next book for discussion?',
+          options: ['1984', 'Brave New World', 'Fahrenheit 451'],
+          votes: [2, 4, 1],
+          sender: 'Carol White',
+          date: '2024-03-14'
+        },
+        'dave_foodie': {
+          id: 'dave-poll-1',
+          question: 'Book club snacks preference?',
+          options: ['Cookies', 'Fruit & Cheese', 'Mixed Nuts'],
+          votes: [3, 5, 2],
+          sender: 'David Brown',
+          date: '2024-03-13'
         }
-      ];
-    })
-  );
+      };
+
+      return pollExamples[member.username];
+    }).filter(Boolean);
+
+    return memberPolls;
+  });
 
   return (
     <div className="p-4">
