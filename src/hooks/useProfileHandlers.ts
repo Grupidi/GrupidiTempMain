@@ -3,7 +3,7 @@ import { ProfileProps } from '../types/profile';
 
 interface ProfileHandlersProps {
   profile: ProfileProps;
-  onUpdateProfile: (id: string, updates: Partial<ProfileProps>) => void;
+  onUpdateProfile: (updates: Partial<ProfileProps>) => void;
   state: ReturnType<typeof import('./useProfileState').useProfileState>;
 }
 
@@ -15,7 +15,7 @@ export function useProfileHandlers({ profile, onUpdateProfile, state }: ProfileH
     if (files && files.length > 0) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        onUpdateProfile(profile.id, { profilePicture: e.target?.result as string });
+        onUpdateProfile({ profilePicture: e.target?.result as string });
       };
       reader.readAsDataURL(files[0]);
     }
@@ -26,17 +26,17 @@ export function useProfileHandlers({ profile, onUpdateProfile, state }: ProfileH
   };
 
   const handleSaveBio = () => {
-    onUpdateProfile(profile.id, { bio: state.editedBio });
+    onUpdateProfile({ bio: state.editedBio });
     state.setIsEditingBio(false);
   };
 
   const handleSaveLocation = () => {
-    onUpdateProfile(profile.id, { location: state.editedLocation });
+    onUpdateProfile({ location: state.editedLocation });
     state.setIsEditingLocation(false);
   };
 
   const handleSaveAge = (birthday: string) => {
-    onUpdateProfile(profile.id, { birthday });
+    onUpdateProfile({ birthday });
     state.setIsEditingAge(false);
   };
 
@@ -52,7 +52,7 @@ export function useProfileHandlers({ profile, onUpdateProfile, state }: ProfileH
   };
 
   const handleSaveInterests = () => {
-    onUpdateProfile(profile.id, { interests: state.editedInterests });
+    onUpdateProfile({ interests: state.editedInterests });
     state.setIsEditingInterests(false);
   };
 
@@ -68,7 +68,7 @@ export function useProfileHandlers({ profile, onUpdateProfile, state }: ProfileH
   };
 
   const handleSaveQuirks = () => {
-    onUpdateProfile(profile.id, { quirks: state.editedQuirks });
+    onUpdateProfile({ quirks: state.editedQuirks });
     state.setIsEditingQuirks(false);
   };
 
