@@ -7,6 +7,7 @@ import { ActionButtons } from "./groups/ActionButtons";
 import { GroupProfile } from '../../types/profiles';
 import { currentGroupProfiles } from '../../data/currentGroupProfiles';
 import { initialMemberProfiles } from '../../data/memberProfiles';
+import { initialGroupProfiles } from '../../data/groupProfiles';
 
 interface GroupsPageProps {
   onNavigate: (page: string, memberId?: string, groupId?: string) => void;
@@ -16,23 +17,50 @@ interface GroupsPageProps {
   leaveGroup?: (groupId: string) => void;
   updateGroupProfile: (groupId: string, updates: Partial<GroupProfile>) => void;
   memberProfiles?: { [key: string]: any };
+  currentUser: any;
 }
 
 export default function GroupsPage({ 
   onNavigate, 
-  groupProfiles = currentGroupProfiles,
+  groupProfiles = initialGroupProfiles,
   savedGroups,
   deleteGroup,
   leaveGroup,
   updateGroupProfile,
-  memberProfiles = initialMemberProfiles
+  memberProfiles = initialMemberProfiles,
+  currentUser
 }: GroupsPageProps) {
   const [showAddButtons, setShowAddButtons] = useState(false);
   const [showInvitations, setShowInvitations] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
 
   const handleGroupNavigation = (groupId: string) => {
+    console.log('Navigating to group:', groupId);
     onNavigate('groupProfile', undefined, groupId);
+  };
+
+  const handleCreateGroup = (groupData: GroupProfile) => {
+    // Ensure we're using username for members
+    const newGroup = {
+      ...groupData,
+      // Ensure we're using the username, not the display name
+      members: [currentUser.username], // Should be 'alice_adventurer'
+      createdAt: Date.now(),
+      createdBy: currentUser.username
+    };
+
+    console.log('Creating group with data:', {
+      currentUser,
+      username: currentUser.username,
+      members: newGroup.members,
+      groupData: newGroup
+    });
+
+    // Update groups with the new group
+    setGroups(prev => ({
+      ...prev,
+      [newGroup.id]: newGroup
+    }));
   };
 
   return (

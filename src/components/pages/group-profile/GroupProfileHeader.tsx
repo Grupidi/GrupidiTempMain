@@ -32,9 +32,35 @@ export function GroupProfileHeader({
   isSavedGroup = false,
   isMember = false
 }: GroupProfileHeaderProps) {
-  // Get valid members using the utility function
-  const validMembers = getGroupMembers(group.members, memberProfiles);
+  // Add null check for group
+  if (!group) {
+    console.warn('Group is undefined');
+    return <div>Loading group profile...</div>;
+  }
+
+  // Log the incoming data
+  console.log('GroupProfileHeader data:', {
+    group,
+    memberProfiles,
+    members: group.members
+  });
+
+  // Ensure members array uses usernames
+  const members = getGroupMembers(
+    group.members.map(member => 
+      // If member is a full name, try to find corresponding username
+      memberProfiles[member]?.username || member
+    ), 
+    memberProfiles
+  );
+
   const canEdit = isMember && !isSavedGroup;
+
+  const handleMemberClick = (member: MemberProfile) => {
+    console.log('Member clicked:', { member });
+    // Pass the username instead of id
+    onMemberClick(member.username);
+  };
 
   return (
     <div className="bg-pink-500 p-6 relative">
@@ -61,11 +87,11 @@ export function GroupProfileHeader({
           <p className="text-pink-100 text-sm mb-2">{group.username}</p>
           {/* Fix #1: Ensure member buttons are rounded */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {validMembers.map((member) => (
+            {members.map((member) => (
               <Button
                 key={member.id}
                 variant="ghost"
-                onClick={() => onMemberClick(member.id)}
+                onClick={() => handleMemberClick(member)}
                 className="bg-white/20 hover:bg-white/30 text-white rounded-full px-3 py-1 h-auto text-sm"
               >
                 {member.name}

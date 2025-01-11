@@ -5,7 +5,6 @@ import { Input } from "../../../ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../ui/avatar";
 import { User, UserPlus, UserMinus } from 'lucide-react';
 import { MemberProfile } from "../../../../types/profiles";
-import { isMemberOfGroup } from "../../../../utils/groups/membership";
 
 interface MembersDialogProps {
   isOpen: boolean;
@@ -20,6 +19,17 @@ interface MembersDialogProps {
   canEdit: boolean;
 }
 
+// Helper functions at the top
+function normalizeUsername(username: string | undefined): string {
+  if (!username) return '';
+  return username.startsWith('@') ? username.slice(1) : username;
+}
+
+function addAtSymbol(username: string | undefined): string {
+  if (!username) return '';
+  return username.startsWith('@') ? username : `@${username}`;
+}
+
 export function MembersDialog({
   isOpen,
   onClose,
@@ -30,10 +40,13 @@ export function MembersDialog({
 }: MembersDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Helper function to normalize usernames
-  const normalizeUsername = (username: string) => {
-    return username.startsWith('@') ? username : `@${username}`;
-  };
+  // Filter out invalid members and normalize usernames
+  const validMembers = groupProfile.members
+    .map(memberId => {
+      const normalizedId = normalizeUsername(memberId);
+      return memberProfiles[normalizedId];
+    })
+    .filter((member): member is MemberProfile => member !== undefined);
 
   // Fix: Properly handle member removal
   const handleRemoveMember = (memberId: string) => {
@@ -41,9 +54,9 @@ export function MembersDialog({
     const member = memberProfiles[memberId];
     if (!member) return;
     
-    const normalizedUsername = normalizeUsername(member.username);
+    const normalizedUsername = addAtSymbol(member.username);
     const updatedMembers = groupProfile.members.filter(username => 
-      normalizeUsername(username) !== normalizedUsername
+      addAtSymbol(username) !== normalizedUsername
     );
     onUpdateMembers(updatedMembers);
   };
@@ -53,8 +66,8 @@ export function MembersDialog({
     const member = memberProfiles[memberId];
     if (!member) return;
 
-    const normalizedUsername = normalizeUsername(member.username);
-    if (!groupProfile.members.some(m => normalizeUsername(m) === normalizedUsername)) {
+    const normalizedUsername = addAtSymbol(member.username);
+    if (!groupProfile.members.some(m => addAtSymbol(m) === normalizedUsername)) {
       const updatedMembers = [...groupProfile.members, normalizedUsername];
       onUpdateMembers(updatedMembers);
     }
@@ -64,7 +77,7 @@ export function MembersDialog({
   const currentMembers = Object.values(memberProfiles)
     .filter(member => 
       groupProfile.members.some(m => 
-        normalizeUsername(m) === normalizeUsername(member.username)
+        addAtSymbol(m) === addAtSymbol(member.username)
       )
     );
 
@@ -72,20 +85,26 @@ export function MembersDialog({
   const availableMembers = Object.values(memberProfiles)
     .filter(member => 
       !groupProfile.members.some(m => 
-        normalizeUsername(m) === normalizeUsername(member.username)
+        addAtSymbol(m) === addAtSymbol(member.username)
       )
     );
 
   // Filter based on search query
-  const filteredCurrentMembers = currentMembers.filter(member => 
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCurrentMembers = currentMembers.filter(member => {
+    if (!member?.name || !member?.username) return false;
+    return (
+      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
-  const filteredAvailableMembers = availableMembers.filter(member => 
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAvailableMembers = availableMembers.filter(member => {
+    if (!member?.name || !member?.username) return false;
+    return (
+      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
