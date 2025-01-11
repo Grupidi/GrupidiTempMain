@@ -4,12 +4,14 @@ import { ProfileHeader } from "../ui/profile/ProfileHeader";
 import { ProfileContent } from "../ui/profile/ProfileContent";
 import { ProfileDialogs } from "../ui/profile/ProfileDialogs";
 import { NavigationBar } from "../ui/profile/NavigationBar";
+import { GroupCard } from "../ui/group/GroupCard";
 import { useProfileImages } from "../../hooks/useProfileImages";
 import { useProfileState } from "../../hooks/useProfileState";
 import { useProfileHandlers } from "../../hooks/useProfileHandlers";
 import { ProfilePageProps } from "../../types/profile";
 import { getCurrentTier } from "../../utils/tiers";
 import { calculateCounts } from "../../utils/profileUtils";
+import { getMemberGroups } from "../../utils/groups/memberGroups";
 import { useEffect, useCallback, useState } from 'react';
 import { parseLocation } from '../../utils/location/distance';
 
@@ -78,6 +80,9 @@ export default function ProfilePage({
     validateAndParseLocation();
   }, [localProfile.location, localProfile.locationCoordinates, localProfile.username]);
 
+  // Get groups where this member is listed as a member
+  const memberGroups = getMemberGroups(localProfile, groupProfiles);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-full bg-white">
@@ -97,6 +102,23 @@ export default function ProfilePage({
           counts={{ groupCount, friendsCount, followingCount }}
           onNavigate={onNavigate}
         />
+
+        <div className="p-4 space-y-4">
+          <h2 className="text-xl font-semibold">Member Groups</h2>
+          {memberGroups.length > 0 ? (
+            <div className="space-y-4">
+              {memberGroups.map(group => (
+                <GroupCard 
+                  key={group.id}
+                  group={group}
+                  onClick={() => onNavigate(`/groups/${group.id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">Not a member of any groups</p>
+          )}
+        </div>
 
         <ProfileDialogs
           profile={localProfile}
