@@ -20,14 +20,9 @@ interface MembersDialogProps {
 }
 
 // Helper functions at the top
-function normalizeUsername(username: string | undefined): string {
+function normalizeUsername(username: string): string {
   if (!username) return '';
-  return username.startsWith('@') ? username.slice(1) : username;
-}
-
-function addAtSymbol(username: string | undefined): string {
-  if (!username) return '';
-  return username.startsWith('@') ? username : `@${username}`;
+  return username.replace(/^@/, '').toLowerCase();
 }
 
 export function MembersDialog({
@@ -40,23 +35,93 @@ export function MembersDialog({
 }: MembersDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Debug logging
+  console.log('MembersDialog data:', {
+    groupProfile,
+    memberProfiles,
+    members: groupProfile.members,
+    normalizedMembers: groupProfile.members.map(m => normalizeUsername(m))
+  });
+
   // Filter out invalid members and normalize usernames
   const validMembers = groupProfile.members
     .map(memberId => {
+      // Try to find member by username first
       const normalizedId = normalizeUsername(memberId);
-      return memberProfiles[normalizedId];
+      
+      // Look for member in different ways
+      let member = memberProfiles[normalizedId] || // Direct lookup
+        Object.values(memberProfiles).find(profile => 
+          normalizeUsername(profile.username) === normalizedId ||
+          normalizeUsername(profile.id) === normalizedId ||
+          normalizeUsername(profile.name) === normalizedId
+        );
+
+      if (!member) {
+        console.warn(`Member not found for ID: ${memberId}`, {
+          normalizedId,
+          availableProfiles: Object.keys(memberProfiles),
+          memberProfiles
+        });
+      } else {
+        console.log('Found member:', member);
+      }
+
+      return member;
     })
     .filter((member): member is MemberProfile => member !== undefined);
 
+  // Fix: Properly filter current members
+  const currentMembers = Object.values(memberProfiles)
+    .filter(member => 
+      groupProfile.members.some(m => {
+        const normalizedMember = normalizeUsername(m);
+        const isMatch = 
+          normalizedMember === normalizeUsername(member.username) ||
+          normalizedMember === normalizeUsername(member.id) ||
+          normalizedMember === normalizeUsername(member.name);
+        
+        if (isMatch) {
+          console.log('Matched member:', { 
+            memberName: member.name, 
+            username: member.username,
+            normalizedMember,
+            groupMember: m 
+          });
+        }
+        return isMatch;
+      })
+    );
+
+  // Fix: Properly filter available members
+  const availableMembers = Object.values(memberProfiles)
+    .filter(member => 
+      !groupProfile.members.some(m => 
+        normalizeUsername(m) === normalizeUsername(member.username) ||
+        normalizeUsername(m) === normalizeUsername(member.id) ||
+        normalizeUsername(m) === normalizeUsername(member.name)
+      )
+    );
+
+  // Filter based on search query
+  const filteredCurrentMembers = currentMembers.filter(member =>
+    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredAvailableMembers = availableMembers.filter(member =>
+    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Fix: Properly handle member removal
   const handleRemoveMember = (memberId: string) => {
-    if (memberId === "Alice Johnson") return; // Prevent removing Alice
     const member = memberProfiles[memberId];
     if (!member) return;
     
-    const normalizedUsername = addAtSymbol(member.username);
-    const updatedMembers = groupProfile.members.filter(username => 
-      addAtSymbol(username) !== normalizedUsername
+    // Use username for consistency
+    const updatedMembers = groupProfile.members.filter(m => 
+      normalizeUsername(m) !== member.username
     );
     onUpdateMembers(updatedMembers);
   };
@@ -66,45 +131,12 @@ export function MembersDialog({
     const member = memberProfiles[memberId];
     if (!member) return;
 
-    const normalizedUsername = addAtSymbol(member.username);
-    if (!groupProfile.members.some(m => addAtSymbol(m) === normalizedUsername)) {
-      const updatedMembers = [...groupProfile.members, normalizedUsername];
+    // Use username for consistency
+    if (!groupProfile.members.some(m => normalizeUsername(m) === member.username)) {
+      const updatedMembers = [...groupProfile.members, member.username];
       onUpdateMembers(updatedMembers);
     }
   };
-
-  // Fix: Properly filter current members
-  const currentMembers = Object.values(memberProfiles)
-    .filter(member => 
-      groupProfile.members.some(m => 
-        addAtSymbol(m) === addAtSymbol(member.username)
-      )
-    );
-
-  // Fix: Properly filter available members
-  const availableMembers = Object.values(memberProfiles)
-    .filter(member => 
-      !groupProfile.members.some(m => 
-        addAtSymbol(m) === addAtSymbol(member.username)
-      )
-    );
-
-  // Filter based on search query
-  const filteredCurrentMembers = currentMembers.filter(member => {
-    if (!member?.name || !member?.username) return false;
-    return (
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
-
-  const filteredAvailableMembers = availableMembers.filter(member => {
-    if (!member?.name || !member?.username) return false;
-    return (
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
