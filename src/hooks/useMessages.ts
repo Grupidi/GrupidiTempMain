@@ -17,8 +17,7 @@ export function useMessages() {
   ) => {
     try {
       const newMessage = createMessage(senderId, content, media);
-      console.log('Adding new message with media:', newMessage);
-
+      
       setMessages(prev => ({
         ...prev,
         [conversationId]: [...(prev[conversationId] || []), newMessage]
@@ -28,9 +27,18 @@ export function useMessages() {
     }
   };
 
+  const clearMessages = (conversationId: string) => {
+    setMessages(prev => {
+      const newMessages = { ...prev };
+      delete newMessages[conversationId];
+      return newMessages;
+    });
+  };
+
   return {
     messages,
     getMessages,
-    addMessage
+    addMessage,
+    clearMessages
   };
 }

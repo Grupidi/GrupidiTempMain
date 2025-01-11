@@ -6,6 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { Input } from "../ui/input";
 import { User } from 'lucide-react';
 import { MediaInput } from './MediaInput';
+import { useMessages } from '../../hooks/useMessages';
 
 interface ChatDialogProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export function ChatDialog({
   memberProfiles
 }: ChatDialogProps) {
   const [messageText, setMessageText] = useState('');
-  const [messages, setMessages] = useState<any[]>([]);
+  const { messages, getMessages, addMessage } = useMessages();
   const [otherUser, setOtherUser] = useState<any>(null);
   const [showMediaInput, setShowMediaInput] = useState(false);
 
@@ -33,15 +34,16 @@ export function ChatDialog({
       return;
     }
 
-    const otherUsername = conversationId === 'alice_adventurer_bob_hiker' ? 'bob_hiker' : 
-      conversationId.replace('alice_adventurer_', '').replace('_bob_hiker', '');
-
-    console.log('Debug info:', {
+    // Get the other username directly from the conversation ID
+    const otherUsername = conversationId
+      .replace(`${currentUser.username}_`, '')
+      .replace(`_${currentUser.username}`, '');
+    
+    console.log('Finding other user:', {
       conversationId,
-      currentUserUsername: currentUser.username,
+      currentUsername: currentUser.username,
       otherUsername,
-      memberProfiles,
-      foundProfile: memberProfiles[otherUsername]
+      memberProfiles
     });
 
     if (otherUsername && memberProfiles[otherUsername]) {
@@ -53,44 +55,45 @@ export function ChatDialog({
         username: otherUserProfile.username,
         profilePicture: otherUserProfile.profilePicture
       });
-    } else {
-      console.error('Could not find other user profile:', {
-        otherUsername,
-        availableProfiles: Object.keys(memberProfiles)
-      });
     }
   }, [conversationId, currentUser, memberProfiles]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageText.trim()) return;
+    if (!messageText.trim() || !conversationId) return;
 
-    const newMessage = {
-      id: Date.now().toString(),
-      content: messageText,
-      senderId: currentUser.username,
-      timestamp: Date.now()
-    };
-
-    setMessages(prev => [...prev, newMessage]);
+    addMessage(
+      conversationId,
+      messageText,
+      currentUser.username
+    );
     setMessageText('');
   };
 
   const handleSendMedia = (files: File[]) => {
+    if (!conversationId) return;
+    
     files.forEach(file => {
-      const newMessage = {
-        id: Date.now().toString(),
-        senderId: currentUser.username,
-        timestamp: Date.now(),
-        media: [{
-          type: 'image',
-          url: URL.createObjectURL(file)
-        }]
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        addMessage(
+          conversationId,
+          '',
+          currentUser.username,
+          [{
+            type: 'image',
+            url: e.target?.result as string
+          }]
+        );
       };
-      setMessages(prev => [...prev, newMessage]);
+      reader.readAsDataURL(file);
     });
+    
     setShowMediaInput(false);
   };
+
+  // Get messages for current conversation only
+  const currentMessages = conversationId ? getMessages(conversationId) : [];
 
   const renderMessage = (message: any) => {
     const isCurrentUser = message.senderId === currentUser.username;
@@ -170,8 +173,8 @@ export function ChatDialog({
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map(renderMessage)}
-          {messages.length === 0 && (
+          {currentMessages.map(renderMessage)}
+          {currentMessages.length === 0 && (
             <div className="text-center text-gray-500 py-8">
               No messages yet. Start the conversation!
             </div>
