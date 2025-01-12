@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ArrowLeft, Map, Users, Bell, User } from "lucide-react";
+import { validateUsername, ProfileValidationError } from '../../utils/validation/profileValidation';
 
 interface AddFollowersPageProps {
   onNavigate: (page: string) => void;
@@ -11,9 +12,8 @@ interface AddFollowersPageProps {
 }
 
 export interface PotentialFollower {
-  id: string;
-  name: string;
   username: string;
+  name: string;
   bio: string;
   location: string;
   profilePicture: string;
@@ -24,25 +24,22 @@ export default function AddFollowersPage({ onNavigate, onFollow, followedUsers }
 
   const initialPotentialFollowers: PotentialFollower[] = [
     {
-      id: "1",
-      name: "Emma Wilson",
       username: "emma_creates",
+      name: "Emma Wilson",
       bio: "Digital artist and creative director",
       location: "San Francisco, CA",
       profilePicture: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3"
     },
     {
-      id: "2",
-      name: "James Anderson",
       username: "james_tech",
+      name: "James Anderson",
       bio: "Software architect and open source contributor",
       location: "San Francisco, CA",
       profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3"
     },
     {
-      id: "3",
-      name: "Sophia Lee",
       username: "sophia_designs",
+      name: "Sophia Lee",
       bio: "UI/UX Designer | Creating delightful experiences",
       location: "San Francisco, CA",
       profilePicture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3"
@@ -51,7 +48,7 @@ export default function AddFollowersPage({ onNavigate, onFollow, followedUsers }
 
   // Filter out users that are already being followed
   const availableFollowers = initialPotentialFollowers.filter(
-    follower => !followedUsers.some(followed => followed.id === follower.id)
+    follower => !followedUsers.some(followed => followed.username === follower.username)
   );
 
   const filteredFollowers = availableFollowers.filter(
@@ -61,6 +58,27 @@ export default function AddFollowersPage({ onNavigate, onFollow, followedUsers }
       follower.bio.toLowerCase().includes(searchQuery.toLowerCase()) ||
       follower.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleFollow = (profile: PotentialFollower) => {
+    try {
+      const validUsername = validateUsername(profile.username);
+      
+      // Check if username is unique among followed users
+      if (followedUsers.some(user => user.username === validUsername)) {
+        throw new ProfileValidationError('Already following this user');
+      }
+      
+      onFollow({
+        ...profile,
+        username: validUsername
+      });
+    } catch (error) {
+      if (error instanceof ProfileValidationError) {
+        console.error(`Cannot follow user: ${error.message}`);
+        // Could show error in UI
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,7 +115,7 @@ export default function AddFollowersPage({ onNavigate, onFollow, followedUsers }
         <div className="space-y-4">
           {filteredFollowers.map((follower) => (
             <div
-              key={follower.id}
+              key={follower.username}
               className="bg-white rounded-lg border p-4 hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-4">
@@ -116,8 +134,9 @@ export default function AddFollowersPage({ onNavigate, onFollow, followedUsers }
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onFollow(follower)}
+                  onClick={() => handleFollow(follower)}
                   className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                  disabled={followedUsers.some(u => u.username === follower.username)}
                 >
                   Follow
                 </Button>

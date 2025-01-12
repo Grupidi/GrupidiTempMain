@@ -43,33 +43,25 @@ export function MembersDialog({
     normalizedMembers: groupProfile.members.map(m => normalizeUsername(m))
   });
 
-  // Filter out invalid members and normalize usernames
-  const validMembers = groupProfile.members
-    .map(memberId => {
-      // Try to find member by username first
-      const normalizedId = normalizeUsername(memberId);
-      
-      // Look for member in different ways
-      let member = memberProfiles[normalizedId] || // Direct lookup
-        Object.values(memberProfiles).find(profile => 
-          normalizeUsername(profile.username) === normalizedId ||
-          normalizeUsername(profile.id) === normalizedId ||
-          normalizeUsername(profile.name) === normalizedId
-        );
+  // Add null check for members
+  const validMembers = groupProfile?.members ? 
+    groupProfile.members
+      .map(memberId => {
+        const normalizedId = normalizeUsername(memberId);
+        let member = memberProfiles[normalizedId] ||
+          Object.values(memberProfiles).find(profile => 
+            normalizeUsername(profile.username) === normalizedId ||
+            normalizeUsername(profile.id) === normalizedId ||
+            normalizeUsername(profile.name) === normalizedId
+          );
 
-      if (!member) {
-        console.warn(`Member not found for ID: ${memberId}`, {
-          normalizedId,
-          availableProfiles: Object.keys(memberProfiles),
-          memberProfiles
-        });
-      } else {
-        console.log('Found member:', member);
-      }
-
-      return member;
-    })
-    .filter((member): member is MemberProfile => member !== undefined);
+        if (!member) {
+          console.warn(`Member not found for ID: ${memberId}`);
+        }
+        return member;
+      })
+      .filter((member): member is MemberProfile => member !== undefined)
+    : [];
 
   // Fix: Properly filter current members
   const currentMembers = Object.values(memberProfiles)

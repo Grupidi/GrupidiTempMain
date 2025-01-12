@@ -32,7 +32,7 @@ export function ProfileHeader({
       <div className="flex flex-col items-center gap-4">
         <div 
           className={`w-24 h-24 border-4 border-white rounded-full overflow-hidden ${profile.profileImages?.length > 0 ? 'cursor-pointer' : ''}`}
-          onClick={imageHandlers.handleImageClick}
+          onClick={() => imageHandlers.setIsImageExpanded(true)}
         >
           <img 
             src={profile.profilePicture}
@@ -61,23 +61,8 @@ export function ProfileHeader({
           </Button>
         </div>
 
-        {/* Hidden file inputs */}
-        <input
-          ref={imageHandlers.fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={imageHandlers.handleFileSelect}
-        />
-        <input
-          ref={imageHandlers.replaceFileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-        />
-
         <ImageGallery
-          images={profile.profileImages}
+          images={profile.profileImages || []}
           isOpen={imageHandlers.isImageExpanded}
           onClose={() => imageHandlers.setIsImageExpanded(false)}
           currentIndex={imageHandlers.currentImageIndex}
@@ -86,6 +71,9 @@ export function ProfileHeader({
           onAddImage={imageHandlers.handleCameraClick}
           onReplaceImage={imageHandlers.handleReplaceImage}
           onDeleteImage={imageHandlers.handleDeleteImage}
+          fileInputRef={imageHandlers.fileInputRef}
+          replaceFileInputRef={imageHandlers.replaceFileInputRef}
+          handleFileSelect={imageHandlers.handleFileSelect}
         />
 
         <AgeDialog

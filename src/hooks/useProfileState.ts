@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { ProfileProps } from '../types/profile';
 
 export function useProfileState(profile: ProfileProps) {
-  const [isImageExpanded, setIsImageExpanded] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [isEditingInterests, setIsEditingInterests] = useState(false);
   const [isEditingQuirks, setIsEditingQuirks] = useState(false);
@@ -18,10 +16,6 @@ export function useProfileState(profile: ProfileProps) {
   const [editedBirthday, setEditedBirthday] = useState(profile.birthday);
 
   return {
-    isImageExpanded,
-    setIsImageExpanded,
-    currentImageIndex,
-    setCurrentImageIndex,
     isEditingBio,
     setIsEditingBio,
     isEditingInterests,

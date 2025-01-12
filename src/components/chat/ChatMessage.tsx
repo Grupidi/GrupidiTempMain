@@ -1,79 +1,60 @@
-import { useState } from 'react';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import { User } from 'lucide-react';
 
 interface ChatMessageProps {
   message: {
-    id: string;
-    text: string;
-    media?: {
-      type: 'image' | 'video';
-      url: string;
-    }[];
-    timestamp: string;
-    senderId: string;
+    content?: string;
+    timestamp: number;
+    media?: { type: 'image'; url: string; }[];
   };
   isCurrentUser: boolean;
+  sender: any;
 }
 
-export function ChatMessage({ message, isCurrentUser }: ChatMessageProps) {
-  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-
-  const renderMedia = (media: { type: 'image' | 'video'; url: string }) => {
-    if (media.type === 'image') {
-      return (
-        <img 
-          src={media.url} 
-          alt="Message attachment"
-          className="w-32 h-32 object-cover rounded-lg cursor-pointer"
-          onClick={() => setSelectedMedia(media.url)}
-        />
-      );
-    }
-    return (
-      <video 
-        src={media.url}
-        className="w-32 h-32 object-cover rounded-lg cursor-pointer"
-        onClick={() => setSelectedMedia(media.url)}
-      />
-    );
+export function ChatMessage({ message, isCurrentUser, sender }: ChatMessageProps) {
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true 
+    });
   };
 
   return (
-    <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-[70%] ${isCurrentUser ? 'bg-pink-500 text-white' : 'bg-gray-100'} rounded-lg p-3`}>
-        {message.text && <p className="mb-2">{message.text}</p>}
-        {message.media && (
-          <div className="flex flex-wrap gap-2">
-            {message.media.map((media, index) => (
-              <div key={index}>
-                {renderMedia(media)}
-              </div>
-            ))}
+    <div className={`flex gap-2 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+      <Avatar className="h-8 w-8 flex-shrink-0">
+        <AvatarImage src={sender?.profilePicture} />
+        <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+      </Avatar>
+      
+      <div className={`flex flex-col ${isCurrentUser ? 'items-end' : ''}`}>
+        {message.content && (
+          <div
+            className={`rounded-2xl px-4 py-2 max-w-[80%] ${
+              isCurrentUser 
+                ? 'bg-pink-500 text-white' 
+                : 'bg-gray-100 text-gray-900'
+            }`}
+          >
+            {message.content}
           </div>
         )}
-        <span className="text-xs opacity-70">{message.timestamp}</span>
-      </div>
-
-      {/* Media Preview Dialog */}
-      <Dialog open={!!selectedMedia} onOpenChange={() => setSelectedMedia(null)}>
-        <DialogContent className="sm:max-w-[800px] p-0">
-          <div className="relative">
-            {selectedMedia?.endsWith('.mp4') ? (
-              <video 
-                src={selectedMedia} 
-                controls 
-                className="w-full h-auto"
-              />
-            ) : (
-              <img 
-                src={selectedMedia || ''} 
-                alt="Media preview"
-                className="w-full h-auto"
-              />
-            )}
+        
+        {message.media && message.media.map((media, index) => (
+          <div key={index} className="mt-1 rounded-lg overflow-hidden">
+            <img 
+              src={media.url} 
+              alt="Media" 
+              className="max-w-[200px] max-h-[200px] object-cover"
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+        ))}
+        
+        <span className="text-xs text-gray-500 mt-1">
+          {formatTime(message.timestamp)}
+        </span>
+      </div>
     </div>
   );
 } 

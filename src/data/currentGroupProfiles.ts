@@ -6,10 +6,10 @@ export const currentGroupProfiles: { [key: string]: GroupProfile } = {
     name: 'Hiking Enthusiasts',
     username: '@peak_seekers',
     description: "We're a group of thrill-seekers and explorers, always ready for the next big adventure.",
-    ageRange: "28-31", // Recalculated based on Alice (28) and Bob (31)
-    avgAge: 29, // Average of 28 and 31
+    ageRange: "28-31",
+    avgAge: 29,
     location: "San Francisco, CA",
-    members: ["@alice_adventurer", "@bob_hiker"],
+    members: ["alice_adventurer", "bob_hiker"],
     bio: "We're passionate about exploring the great outdoors and challenging ourselves on new trails. From weekend warriors to seasoned trekkers, we welcome all who share our love for nature and adventure.",
     interests: ["Hiking", "Photography", "Camping", "Rock Climbing", "Nature Conservation"],
     quirks: ["Always overpacks trail mix", "Speaks in hiking metaphors", "Obsessed with gear weight"],
@@ -25,10 +25,10 @@ export const currentGroupProfiles: { [key: string]: GroupProfile } = {
     name: 'Book Club',
     username: '@page_turners',
     description: "A cozy corner for literary minds to meet and discuss great works.",
-    ageRange: "28-29", // Recalculated based on Alice (28) and Carol (29)
-    avgAge: 28, // Average of 28 and 29
+    ageRange: "28-29",
+    avgAge: 28,
     location: "San Francisco, CA",
-    members: ["@carol_reads", "@dave_foodie", "@alice_adventurer"],
+    members: ["carol_reads", "dave_foodie", "alice_adventurer"],
     bio: "We're a diverse group of book lovers who meet monthly to discuss everything from classic literature to contemporary fiction. Our discussions are always lively and thought-provoking.",
     interests: ["Reading", "Literary Analysis", "Creative Writing", "Poetry", "Author Studies"],
     quirks: ["Collects bookmarks", "Quotes books in daily conversation", "Never leaves home without a book"],
@@ -44,8 +44,8 @@ export const currentGroupProfiles: { [key: string]: GroupProfile } = {
     name: 'Foodies Unite',
     username: '@taste_collective',
     description: "For those who live to eat and love to share culinary adventures.",
-    ageRange: "28-30", // Recalculated based on Alice (28) and Dave (30)
-    avgAge: 29, // Average of 28 and 30
+    ageRange: "28-30",
+    avgAge: 29,
     location: "San Francisco, CA",
     members: ["@dave_foodie", "@alice_adventurer"],
     bio: "We're food enthusiasts who explore everything from street food to fine dining. We share recipes, organize cooking classes, and discover new restaurants together.",
@@ -63,8 +63,8 @@ export const currentGroupProfiles: { [key: string]: GroupProfile } = {
     name: 'Tech Innovators',
     username: '@code_crafters',
     description: "Where creativity meets technology to shape the future.",
-    ageRange: "28-31", // Recalculated based on Alice (28), Bob (31), and Carol (29)
-    avgAge: 29, // Average of 28, 31, and 29
+    ageRange: "28-31",
+    avgAge: 29,
     location: "San Francisco, CA",
     members: ["@bob_hiker", "@carol_reads", "@alice_adventurer"],
     bio: "We're a community of tech enthusiasts, developers, and innovators who collaborate on projects and share knowledge. From AI to IoT, we explore cutting-edge technologies.",
@@ -82,8 +82,8 @@ export const currentGroupProfiles: { [key: string]: GroupProfile } = {
     name: 'Fitness Fanatics',
     username: '@fit_squad',
     description: "Dedicated to health, wellness, and pushing physical limits.",
-    ageRange: "28-31", // Recalculated based on Alice (28) and Bob (31)
-    avgAge: 29, // Average of 28 and 31
+    ageRange: "28-31",
+    avgAge: 29,
     location: "San Francisco, CA",
     members: ["@alice_adventurer", "@bob_hiker"],
     bio: "We're fitness enthusiasts who support each other in achieving health and wellness goals. From HIIT to yoga, we embrace all forms of physical activity.",
@@ -101,8 +101,8 @@ export const currentGroupProfiles: { [key: string]: GroupProfile } = {
     name: 'Movie Buffs',
     username: '@reel_society',
     description: "For those who live and breathe cinema in all its forms.",
-    ageRange: "28-30", // Recalculated based on Alice (28), Carol (29), and Dave (30)
-    avgAge: 29, // Average of 28, 29, and 30
+    ageRange: "28-30",
+    avgAge: 29,
     location: "San Francisco, CA",
     members: ["@carol_reads", "@dave_foodie", "@alice_adventurer"],
     bio: "We're passionate about all things cinema - from classic films to modern masterpieces. We organize screenings, discuss film theory, and share our love for the art of storytelling through motion pictures.",
@@ -114,5 +114,64 @@ export const currentGroupProfiles: { [key: string]: GroupProfile } = {
       "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?ixlib=rb-4.0.3",
       "https://images.unsplash.com/photo-1585647347384-2593bc35786b?ixlib=rb-4.0.3"
     ]
+  }
+};
+
+export const memberProfiles = {
+  "oliver_music": {
+    id: "oliver_music",
+    name: "Oliver Kim",
+    username: "oliver_music",
+    birthday: "1995-01-01",
+    location: "San Francisco, CA",
+    bio: "Full-stack developer and open source contributor",
+    profilePicture: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-4.0.3",
+    profileImages: [],
+    interests: [],
+    quirks: [],
+    emeraldScore: 1000,
+    friends: []
+  },
+  "lucas_tech": {
+    id: "lucas_tech",
+    name: "Lucas Chen",
+    username: "lucas_tech",
+    birthday: "1995-01-01",
+    location: "San Francisco, CA",
+    bio: "UX designer and accessibility advocate",
+    profilePicture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3",
+    profileImages: [],
+    interests: [],
+    quirks: [],
+    emeraldScore: 1000,
+    friends: []
+  },
+  "ryan_codes": {
+    id: "ryan_codes",
+    name: "Ryan Martinez",
+    username: "ryan_codes",
+    birthday: "1995-01-01",
+    location: "San Francisco, CA",
+    bio: "Full-stack developer and open source contributor",
+    profilePicture: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-4.0.3",
+    profileImages: [],
+    interests: [],
+    quirks: [],
+    emeraldScore: 1000,
+    friends: []
+  },
+  "sophie_creates": {
+    id: "sophie_creates",
+    name: "Sophie Anderson",
+    username: "sophie_creates",
+    birthday: "1995-01-01",
+    location: "San Francisco, CA",
+    bio: "UX designer and accessibility advocate",
+    profilePicture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3",
+    profileImages: [],
+    interests: [],
+    quirks: [],
+    emeraldScore: 1000,
+    friends: []
   }
 };

@@ -7,8 +7,8 @@ import { MediaPolls } from './media/MediaPolls';
 import { MediaLinks } from './media/MediaLinks';
 
 interface MediaGalleryProps {
-  activeTab: 'gifs' | 'photos' | 'voice' | 'polls' | 'links';
-  onTabChange: (tab: 'gifs' | 'photos' | 'voice' | 'polls' | 'links') => void;
+  activeTab: 'photos' | 'gifs' | 'voice' | 'polls' | 'links';
+  onTabChange: (tab: 'photos' | 'gifs' | 'voice' | 'polls' | 'links') => void;
   groupProfile: {
     id: string;
     name: string;
@@ -31,7 +31,7 @@ export function MediaGallery({
   memberProfiles 
 }: MediaGalleryProps) {
   return (
-    <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as 'gifs' | 'photos' | 'voice' | 'polls' | 'links')} className="h-full flex flex-col">
+    <Tabs value={activeTab} onValueChange={onTabChange} className="h-full flex flex-col">
       <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="photos" className="flex flex-col items-center py-2">
           <ImageIcon className="h-5 w-5 mb-1" />

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ArrowLeft, Map, Users, Bell, User, UserPlus, UserPlus2, UserX } from 'lucide-react';
 import { useProfileStatus } from '../../hooks/useProfileStatus';
 import { MemberProfile } from '../../types/profiles';
+import { validateUsername, ProfileValidationError } from '../../utils/validation/profileValidation';
 
 interface FriendsPageProps {
   onNavigate: (page: string) => void;
@@ -41,7 +42,7 @@ export default function FriendsPage({
 
   // Filter friends based on search query
   const filteredFriends = friends
-    .map(friendId => memberProfiles[friendId])
+    .map(friendUsername => memberProfiles[friendUsername])
     .filter(friend => 
       friend && (
         friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -49,10 +50,18 @@ export default function FriendsPage({
       )
     );
 
-  const handleUnfriend = (friendId: string) => {
-    // Pass memberProfiles in the context
-    const context = { currentUser, followedUsers, friendRequests, memberProfiles };
-    updateStatus(friendId, 'none');
+  const handleUnfriend = (username: string) => {
+    try {
+      const validUsername = validateUsername(username);
+      const context = { currentUser, followedUsers, friendRequests, memberProfiles };
+      updateStatus(validUsername, 'none');
+    } catch (error) {
+      if (error instanceof ProfileValidationError) {
+        console.error(`Cannot unfriend: ${error.message}`);
+      } else {
+        console.error('Unexpected error:', error);
+      }
+    }
   };
 
   return (
@@ -96,7 +105,7 @@ export default function FriendsPage({
 
       <div className="divide-y">
         {filteredFriends.map((friend) => (
-          <div key={friend.id} className="p-4 flex items-center justify-between">
+          <div key={friend.username} className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarImage src={friend.profilePicture} alt={friend.name} />
@@ -110,7 +119,7 @@ export default function FriendsPage({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleUnfriend(friend.id)}
+              onClick={() => handleUnfriend(friend.username)}
               className="text-red-500 hover:text-red-600"
             >
               Unfriend

@@ -18,6 +18,8 @@ export function GroupProfileContent({
   isMember = false
 }: GroupProfileContentProps) {
   const canEdit = isMember && !isSavedGroup;
+  
+  const memberCount = groupProfile?.members?.length || 0;
 
   return (
     <div className="p-4 space-y-6 pb-20">
@@ -44,7 +46,7 @@ export function GroupProfileContent({
               <Users className="h-5 w-5 text-pink-500" />
               <h2 className="font-semibold">Members</h2>
             </div>
-            <p className="text-black">{groupProfile.members.length} members</p>
+            <p className="text-black">{memberCount} members</p>
           </CardContent>
         </Card>
       </div>

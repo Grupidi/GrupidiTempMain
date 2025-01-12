@@ -26,7 +26,7 @@ export function GroupList({
   const { handleLeaveGroup, isLeaving } = useLeaveGroup(memberProfiles, updateGroupProfile);
 
   // Get current user
-  const currentUser = memberProfiles["Alice Johnson"];
+  const currentUser = memberProfiles["alice_adventurer"];
   
   // If no groups or current user, show appropriate message
   if (!groups || Object.keys(groups).length === 0) {

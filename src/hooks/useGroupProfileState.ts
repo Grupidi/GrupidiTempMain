@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import { GroupProfileProps, GroupProfileState } from '../types/groupProfile';
+import { GroupProfile } from '../types/profiles';
+import { GroupProfileState } from '../types/groupProfile';
 
-const initialState = (groupProfile?: GroupProfileProps['groupProfile']): GroupProfileState => ({
+const initialState = (groupProfile?: GroupProfile): GroupProfileState => ({
   isImageExpanded: false,
   currentImageIndex: 0,
   showMembersDialog: false,
@@ -15,10 +16,11 @@ const initialState = (groupProfile?: GroupProfileProps['groupProfile']): GroupPr
   editedLocation: groupProfile?.location || '',
   editedInterests: groupProfile?.interests ? [...groupProfile.interests] : [],
   editedQuirks: groupProfile?.quirks ? [...groupProfile.quirks] : [],
-  editedBio: groupProfile?.bio || ''
+  editedBio: groupProfile?.bio || '',
+  locationCoordinates: groupProfile?.locationCoordinates || null
 });
 
-export function useGroupProfileState(groupProfile?: GroupProfileProps['groupProfile']) {
+export function useGroupProfileState(groupProfile?: GroupProfile) {
   const [state, setState] = useState<GroupProfileState>(() => initialState(groupProfile));
 
   // Update state when groupProfile changes
@@ -26,10 +28,10 @@ export function useGroupProfileState(groupProfile?: GroupProfileProps['groupProf
     if (groupProfile) {
       setState(prev => ({
         ...prev,
-        editedLocation: groupProfile.location,
-        editedInterests: [...groupProfile.interests],
-        editedQuirks: [...groupProfile.quirks],
-        editedBio: groupProfile.bio
+        editedLocation: groupProfile.location || '',
+        editedInterests: groupProfile.interests ? [...groupProfile.interests] : [],
+        editedQuirks: groupProfile.quirks ? [...groupProfile.quirks] : [],
+        editedBio: groupProfile.bio || ''
       }));
     }
   }, [groupProfile]);

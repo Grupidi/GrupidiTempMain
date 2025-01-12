@@ -5,10 +5,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ArrowLeft, Map, Users, Bell, User } from 'lucide-react';
 import { useProfileStatus } from '../../hooks/useProfileStatus';
 import { MemberProfile, FriendRequest } from '../../types/profiles';
+import { validateUsername, ProfileValidationError } from '../../utils/validation/profileValidation';
 
 interface FriendRequestsPageProps {
   onNavigate: (page: string) => void;
   currentUser: MemberProfile;
+  memberProfiles: { [key: string]: MemberProfile };
   followedUsers: any[];
   friendRequests: FriendRequest[];
   updateMemberProfile: (id: string, updates: Partial<MemberProfile>) => void;
@@ -19,6 +21,7 @@ interface FriendRequestsPageProps {
 export default function FriendRequestsPage({
   onNavigate,
   currentUser,
+  memberProfiles,
   followedUsers,
   friendRequests,
   updateMemberProfile,
@@ -35,18 +38,93 @@ export default function FriendRequestsPage({
     setFriendRequests
   );
 
-  const handleAccept = (requestId: string) => {
-    updateStatus(requestId, 'friend');
+  const handleAcceptRequest = (request: any) => {
+    try {
+      const validUsername = validateUsername(request.username);
+      
+      console.log('Before accepting request:', {
+        currentUser,
+        currentUserFriends: currentUser.friends,
+        memberProfiles,
+        requestUsername: validUsername
+      });
+      
+      // First update their status to friend
+      updateStatus(validUsername, 'friend');
+      
+      // Remove the request from friendRequests array
+      setFriendRequests(prev => 
+        prev.filter(req => req.username !== validUsername)
+      );
+
+      // Add them to current user's friends list
+      const updatedCurrentUser = {
+        ...currentUser,
+        friends: Array.from(new Set([...(currentUser.friends || []), validUsername]))
+      };
+      
+      updateMemberProfile(currentUser.username, updatedCurrentUser);
+
+      // Create or update the other user's profile
+      const otherUser = memberProfiles[validUsername] || {
+        id: request.id,
+        name: request.name,
+        username: validUsername,
+        birthday: "1995-01-01", // Default birthday
+        location: request.location,
+        bio: request.bio,
+        profilePicture: request.profilePicture,
+        profileImages: [request.profilePicture],
+        interests: [],
+        quirks: [],
+        emeraldScore: 1000,
+        friends: []
+      };
+
+      const updatedOtherUser = {
+        ...otherUser,
+        friends: Array.from(new Set([...(otherUser.friends || []), currentUser.username]))
+      };
+
+      updateMemberProfile(validUsername, updatedOtherUser);
+
+      console.log('After accepting request:', {
+        updatedCurrentUser,
+        updatedOtherUser,
+        memberProfiles
+      });
+
+    } catch (error) {
+      if (error instanceof ProfileValidationError) {
+        console.error(`Invalid friend request: ${error.message}`);
+        handleRejectRequest(request);
+      } else {
+        console.error('Unexpected error while accepting request:', error);
+      }
+    }
   };
 
-  const handleDecline = (requestId: string) => {
-    updateStatus(requestId, 'none');
+  const handleRejectRequest = (request: any) => {
+    try {
+      const validUsername = validateUsername(request.username);
+      setFriendRequests(prev => 
+        prev.filter(req => req.username !== validUsername)
+      );
+    } catch (error) {
+      console.error('Failed to reject request:', error);
+      // Still remove the invalid request to maintain data integrity
+      setFriendRequests(prev => 
+        prev.filter(req => req.username !== request.username)
+      );
+    }
   };
 
-  const filteredRequests = friendRequests.filter(request =>
-    request.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    request.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredRequests = friendRequests
+    .filter(request => request.status === 'pending')
+    .filter(request =>
+      request.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      request.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -80,7 +158,7 @@ export default function FriendRequestsPage({
 
       <div className="divide-y">
         {filteredRequests.map((request) => (
-          <div key={request.id} className="p-4">
+          <div key={request.username} className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <Avatar>
                 <AvatarImage src={request.profilePicture} alt={request.name} />
@@ -93,14 +171,14 @@ export default function FriendRequestsPage({
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => handleAccept(request.id)}
+                onClick={() => handleAcceptRequest(request)}
                 className="flex-1 bg-pink-500 hover:bg-pink-600"
               >
                 Accept
               </Button>
               <Button
                 variant="outline"
-                onClick={() => handleDecline(request.id)}
+                onClick={() => handleRejectRequest(request)}
                 className="flex-1"
               >
                 Decline

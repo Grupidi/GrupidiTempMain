@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ArrowLeft, Map, Users, Bell, User } from 'lucide-react';
 import { useProfileStatus } from '../../hooks/useProfileStatus';
 import { MemberProfile, PotentialFollower } from '../../types/profiles';
+import { validateUsername, ProfileValidationError } from '../../utils/validation/profileValidation';
 
 interface FollowersPageProps {
   onNavigate: (page: string) => void;
@@ -36,13 +37,20 @@ export default function FollowersPage({
   );
 
   const handleFollowBack = (follower: PotentialFollower) => {
-    // Transition directly to friend status since they are already following us
-    updateStatus(follower.id, 'friend');
+    try {
+      const validUsername = validateUsername(follower.username);
+      updateStatus(validUsername, 'friend');
+    } catch (error) {
+      if (error instanceof ProfileValidationError) {
+        console.error(`Cannot follow back: ${error.message}`);
+      } else {
+        console.error('Unexpected error:', error);
+      }
+    }
   };
 
-  const filteredFollowers = friendRequests.filter(follower =>
-    follower.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    follower.username.toLowerCase().includes(searchQuery.toLowerCase())
+  const followers = friendRequests.filter(req => 
+    !req.status && req.username !== currentUser.username
   );
 
   return (
@@ -59,7 +67,7 @@ export default function FollowersPage({
           <div>
             <h1 className="text-xl font-semibold">Followers</h1>
             <p className="text-sm text-gray-500">
-              {filteredFollowers.length} followers
+              {followers.length} followers
             </p>
           </div>
         </div>
@@ -76,8 +84,8 @@ export default function FollowersPage({
       </div>
 
       <div className="divide-y">
-        {filteredFollowers.map((follower) => (
-          <div key={follower.id} className="p-4 flex items-center justify-between">
+        {followers.map(follower => (
+          <div key={follower.username} className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarImage src={follower.profilePicture} alt={follower.name} />

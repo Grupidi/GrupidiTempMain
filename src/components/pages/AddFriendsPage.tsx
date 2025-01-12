@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { ArrowLeft, Map, Users, Bell, User, UserPlus, Check } from 'lucide-react';
+import { ArrowLeft, Map, Users, Bell, User, UserPlus, Check, Clock } from 'lucide-react';
 import { useProfileStatus } from '../../hooks/useProfileStatus';
 import { MemberProfile } from '../../types/profiles';
 import { getProfileStatus } from '../../utils/profileStatus/getStatus';
+import { validateUsername, ProfileValidationError } from '../../utils/validation/profileValidation';
 
 interface AddFriendsPageProps {
   onNavigate: (page: string) => void;
@@ -40,41 +41,58 @@ export default function AddFriendsPage({
   );
 
   const handleAddFriend = (profile: MemberProfile) => {
-    const context = { currentUser, followedUsers, friendRequests };
-    const status = getProfileStatus(context, profile.id);
+    try {
+      const validUsername = validateUsername(profile.username);
+      const context = { currentUser, followedUsers, friendRequests, requestedProfiles };
+      const status = getProfileStatus(context, validUsername);
 
-    if (status === 'follower') {
-      // If they're already following us, directly add as friend
-      updateStatus(profile.id, 'friend');
-    } else {
-      // Otherwise, send a friend request
-      setRequestedProfiles(prev => new Set([...prev, profile.id]));
-      setFriendRequests(prev => [...prev, {
-        id: profile.id,
-        name: profile.name,
-        username: profile.username,
-        bio: profile.bio,
-        location: profile.location,
-        profilePicture: profile.profilePicture,
-        status: 'pending'
-      }]);
+      if (status === 'follower') {
+        updateStatus(validUsername, 'friend');
+        setRequestedProfiles(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(validUsername);
+          return newSet;
+        });
+      } else if (status === 'following' || status === 'none') {
+        setRequestedProfiles(prev => new Set([...prev, validUsername]));
+        updateStatus(validUsername, 'requested');
+        
+        setFriendRequests(prev => [...prev, {
+          id: validUsername,
+          name: profile.name,
+          username: validUsername,
+          bio: profile.bio,
+          location: profile.location,
+          profilePicture: profile.profilePicture,
+          status: 'pending'
+        }]);
+      }
+    } catch (error) {
+      if (error instanceof ProfileValidationError) {
+        console.error(`Profile validation failed: ${error.message}`);
+        // You could show this error in the UI
+      } else {
+        console.error('Unexpected error:', error);
+      }
     }
   };
 
-  // Filter available profiles
   const availableProfiles = Object.values(memberProfiles).filter(profile => {
-    if (!profile || !profile.id || !profile.name || !profile.username) {
-      return false;
-    }
-
-    const context = { currentUser, followedUsers, friendRequests };
-    const status = getProfileStatus(context, profile.id);
+    const context = { currentUser, followedUsers, friendRequests, requestedProfiles };
+    const status = getProfileStatus(context, profile.username);
+    
+    console.log(`Profile ${profile.name} (${profile.username}):`, {
+      status,
+      isInFriendRequests: friendRequests.some(req => req.username === profile.username),
+      isInFollowedUsers: followedUsers.some(user => user.username === profile.username),
+      isPending: friendRequests.some(req => req.username === profile.username && req.status === 'pending'),
+      isRequested: requestedProfiles.has(profile.username)
+    });
     
     return (
-      profile.id !== currentUser.id && 
-      !currentUser.friends.includes(profile.id) &&
-      !requestedProfiles.has(profile.id) &&
-      status !== 'friend'
+      profile.username !== currentUser.username &&
+      !currentUser.friends.includes(profile.username) &&
+      ['none', 'following', 'follower', 'pending'].includes(status)
     );
   });
 
@@ -90,8 +108,8 @@ export default function AddFriendsPage({
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-4 py-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b px-4 py-4 sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
@@ -109,7 +127,7 @@ export default function AddFriendsPage({
         </div>
       </header>
 
-      <div className="p-4">
+      <div className="bg-white border-b p-4 sticky top-[73px] z-10">
         <Input
           type="text"
           placeholder="Search users..."
@@ -119,50 +137,64 @@ export default function AddFriendsPage({
         />
       </div>
 
-      <div className="divide-y">
-        {filteredProfiles.map((profile) => {
-          const isRequested = requestedProfiles.has(profile.id);
-          const context = { currentUser, followedUsers, friendRequests };
-          const status = getProfileStatus(context, profile.id);
+      <div className="flex-1 overflow-y-auto pb-16">
+        <div className="divide-y">
+          {filteredProfiles.map((profile) => {
+            const isRequested = requestedProfiles.has(profile.username);
+            const context = { 
+              currentUser, 
+              followedUsers, 
+              friendRequests,
+              requestedProfiles 
+            };
+            const status = getProfileStatus(context, profile.username);
 
-          return (
-            <div key={profile.id} className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarImage src={profile.profilePicture} alt={profile.name} />
-                  <AvatarFallback>{profile.name.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-medium">{profile.name}</h3>
-                  <p className="text-sm text-gray-500">@{profile.username}</p>
+            return (
+              <div key={profile.username} className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={profile.profilePicture} alt={profile.name} />
+                    <AvatarFallback>{profile.name.slice(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium">{profile.name}</h3>
+                    <p className="text-sm text-gray-500">@{profile.username}</p>
+                  </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddFriend(profile)}
+                  disabled={status === 'pending'}
+                  className={`flex items-center gap-2 ${
+                    status === 'pending'
+                      ? 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-50 cursor-not-allowed'
+                      : isRequested 
+                        ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-50'
+                        : 'text-blue-500 hover:text-blue-600'
+                  }`}
+                >
+                  {status === 'pending' ? (
+                    <>
+                      <Clock className="h-4 w-4" />
+                      Pending
+                    </>
+                  ) : isRequested ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Requested!
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4" />
+                      Add Friend
+                    </>
+                  )}
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleAddFriend(profile)}
-                disabled={isRequested}
-                className={`flex items-center gap-2 ${
-                  isRequested 
-                    ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-50'
-                    : 'text-blue-500 hover:text-blue-600'
-                }`}
-              >
-                {isRequested ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Requested!
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4" />
-                    Add Friend
-                  </>
-                )}
-              </Button>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-pink-500 text-white">

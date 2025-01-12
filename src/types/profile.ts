@@ -13,23 +13,15 @@ export interface ProfileProps {
   friends: string[];
 }
 
+export interface UpdateMemberProfileParams {
+  username: string;
+  updates: Partial<MemberProfile>;
+}
+
 export interface ProfilePageProps {
-  onNavigate: (page: string) => void;
-  profile: ProfileProps;
-  onUpdateProfile: (updates: Partial<ProfileProps>) => void;
-  groupProfiles: {
-    [key: string]: {
-      id: string;
-      name: string;
-      members: string[];
-    };
-  };
-  followedUsers: {
-    id: string;
-    name: string;
-    username: string;
-    bio: string;
-    location: string;
-    profilePicture: string;
-  }[];
+  onNavigate: (page: Page) => void;
+  profile: MemberProfile;
+  onUpdateProfile: (username: string, updates: Partial<MemberProfile>) => Promise<void>;
+  groupProfiles: Record<string, GroupProfile>;
+  followedUsers: string[];
 }

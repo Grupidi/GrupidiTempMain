@@ -12,6 +12,8 @@ export interface Message {
 export interface Conversation {
   id: string;
   participants: string[];
-  lastMessage: Message | null;
+  messages: any[];
+  lastMessage: any | null;
   unreadCount: number;
+  createdAt: number;
 }

@@ -1,3 +1,5 @@
+import { PotentialFollower } from '../types/profiles';
+
 export const initialFollowedUsers: PotentialFollower[] = [
   {
     id: "oliver_music",

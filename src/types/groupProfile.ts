@@ -14,6 +14,7 @@ export interface GroupProfileState {
   editedInterests: string[];
   editedQuirks: string[];
   editedBio: string;
+  locationCoordinates: { lat: number; lng: number } | null;
 }
 
 export interface GroupProfileStateProps {
@@ -22,25 +23,9 @@ export interface GroupProfileStateProps {
 }
 
 export interface GroupProfileProps {
+  groupProfile: GroupProfile;
+  memberProfiles: { [key: string]: MemberProfile };
+  isSavedGroup?: boolean;
+  updateGroupProfile: (updates: Partial<GroupProfile>) => void;
   onNavigate: (page: string, memberId?: string, groupId?: string) => void;
-  memberProfiles: { [key: string]: {
-    id: string;
-    name: string;
-    username: string;
-    profilePicture: string;
-  }};
-  groupProfile: {
-    id: string;
-    name: string;
-    description: string;
-    ageRange: string;
-    avgAge: number;
-    location: string;
-    members: string[];
-    bio: string;
-    interests: string[];
-    quirks: string[];
-    images: string[];
-  };
-  updateGroupProfile: (groupId: string, updates: Partial<GroupProfileProps['groupProfile']>) => void;
 }

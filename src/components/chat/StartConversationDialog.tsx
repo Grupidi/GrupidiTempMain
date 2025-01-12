@@ -1,0 +1,1 @@
+// This entire file can be deleted since we'll use the existing NewMessageDialog 

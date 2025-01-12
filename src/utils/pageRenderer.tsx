@@ -19,6 +19,7 @@ import {
   MemberProfilePage
 } from '../components/pages';
 import { discoverableMemberProfiles } from '../data/discoverableMemberProfiles';
+import { discoverableGroupProfiles } from '../data/discoverableGroupProfiles';
 import { PageRendererProps } from '../types/pageRenderer';
 import { GroupProfile } from '../types/profiles';
 
@@ -46,7 +47,9 @@ export function renderCurrentPage({
     ...discoverableMemberProfiles
   };
 
-  const currentUser = allMemberProfiles["Alice Johnson"];
+  console.log('All member profiles:', allMemberProfiles);
+  const currentUser = allMemberProfiles["alice_adventurer"];
+  console.log('Current user:', currentUser);
   if (!currentUser) return null;
 
   switch (currentPage) {
@@ -93,17 +96,56 @@ export function renderCurrentPage({
       );
 
     case 'groupProfile':
-      const group = groupProfiles[selectedGroupId] || savedGroups[selectedGroupId];
-      if (!group) return null;
-      return (
-        <GroupProfilePage 
-          onNavigate={onNavigate}
-          memberProfiles={allMemberProfiles}
-          groupProfile={group}
-          updateGroupProfile={onUpdateGroup}
-          isSavedGroup={Boolean(savedGroups[selectedGroupId])}
-        />
-      );
+      if (selectedGroupId) {
+        const originalGroup = groupProfiles[selectedGroupId] || 
+                            discoverableGroupProfiles[selectedGroupId];
+
+        const group = savedGroups[selectedGroupId] ? {
+          ...originalGroup,
+          id: selectedGroupId,
+          members: originalGroup?.members || [],
+          interests: originalGroup?.interests || [],
+          quirks: originalGroup?.quirks || [],
+          location: originalGroup?.location || '',
+          locationCoordinates: originalGroup?.locationCoordinates || null,
+          images: originalGroup?.images || [],
+          bio: originalGroup?.bio || '',
+          name: originalGroup?.name || '',
+          username: originalGroup?.username || '',
+          ageRange: originalGroup?.ageRange || '',
+          avgAge: originalGroup?.avgAge || 0
+        } : originalGroup;
+
+        console.log('Loading group profile:', {
+          selectedGroupId,
+          group,
+          fromSaved: Boolean(savedGroups[selectedGroupId]),
+          hasMembers: Boolean(group?.members)
+        });
+
+        if (!group) {
+          console.error('Group not found:', selectedGroupId);
+          return null;
+        }
+
+        return (
+          <GroupProfilePage 
+            groupProfile={group}
+            memberProfiles={allMemberProfiles}
+            isSavedGroup={Boolean(savedGroups[selectedGroupId])}
+            updateGroupProfile={(updates) => {
+              if (savedGroups[selectedGroupId]) {
+                const updatedGroup = { ...savedGroups[selectedGroupId], ...updates };
+                onUpdateGroup(selectedGroupId, updatedGroup);
+              } else {
+                onUpdateGroup(selectedGroupId, updates);
+              }
+            }}
+            onNavigate={onNavigate}
+          />
+        );
+      }
+      return null;
 
     case 'groupChat':
       const chatGroup = groupProfiles[selectedGroupId];

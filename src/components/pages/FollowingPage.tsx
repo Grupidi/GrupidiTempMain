@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ArrowLeft, Map, Users, Bell, User, UserPlus } from 'lucide-react';
 import { useProfileStatus } from '../../hooks/useProfileStatus';
 import { MemberProfile, PotentialFollower } from '../../types/profiles';
+import { validateUsername, ProfileValidationError } from '../../utils/validation/profileValidation';
 
 interface FollowingPageProps {
   onNavigate: (page: string) => void;
@@ -35,8 +36,16 @@ export default function FollowingPage({
     setFriendRequests
   );
 
-  const handleUnfollow = (userId: string) => {
-    updateStatus(userId, 'none');
+  const handleUnfollow = (username: string) => {
+    try {
+      const validUsername = validateUsername(username);
+      updateStatus(validUsername, 'none');
+    } catch (error) {
+      if (error instanceof ProfileValidationError) {
+        console.error(`Cannot unfollow: ${error.message}`);
+        // Could refresh the following list here
+      }
+    }
   };
 
   const filteredFollowing = followedUsers.filter(user =>
@@ -76,7 +85,7 @@ export default function FollowingPage({
 
       <div className="divide-y">
         {filteredFollowing.map((user) => (
-          <div key={user.id} className="p-4 flex items-center justify-between">
+          <div key={user.username} className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarImage src={user.profilePicture} alt={user.name} />
@@ -90,7 +99,7 @@ export default function FollowingPage({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleUnfollow(user.id)}
+              onClick={() => handleUnfollow(user.username)}
               className="text-gray-500 hover:text-gray-600"
             >
               Unfollow

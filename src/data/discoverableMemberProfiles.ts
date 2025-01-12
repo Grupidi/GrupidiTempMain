@@ -1,7 +1,7 @@
 import { MemberProfile } from '../types/profiles';
 
 export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
-  "Emma Wilson": {
+  "emma_wellness": {
     id: "Emma Wilson",
     name: "Emma Wilson",
     username: "emma_wellness",
@@ -18,7 +18,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2800,
     friends: []
   },
-  "Sarah Chen": {
+  "sarah_mindful": {
     id: "Sarah Chen",
     name: "Sarah Chen",
     username: "sarah_mindful",
@@ -35,7 +35,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2600,
     friends: []
   },
-  "Maya Patel": {
+  "maya_creates": {
     id: "Maya Patel",
     name: "Maya Patel",
     username: "maya_creates",
@@ -52,7 +52,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2750,
     friends: []
   },
-  "Lucas Wright": {
+  "lucas_artistry": {
     id: "Lucas Wright",
     name: "Lucas Wright",
     username: "lucas_artistry",
@@ -69,7 +69,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2900,
     friends: []
   },
-  "Jack Thompson": {
+  "jack_beats": {
     id: "Jack Thompson",
     name: "Jack Thompson",
     username: "jack_beats",
@@ -86,7 +86,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2850,
     friends: []
   },
-  "Nina Rodriguez": {
+  "nina_sounds": {
     id: "Nina Rodriguez",
     name: "Nina Rodriguez",
     username: "nina_sounds",
@@ -103,7 +103,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2700,
     friends: []
   },
-  "Oliver Green": {
+  "oliver_grows": {
     id: "Oliver Green",
     name: "Oliver Green",
     username: "oliver_grows",
@@ -120,7 +120,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2950,
     friends: []
   },
-  "Sofia Martinez": {
+  "sofia_gardens": {
     id: "Sofia Martinez",
     name: "Sofia Martinez",
     username: "sofia_gardens",
@@ -137,7 +137,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2800,
     friends: []
   },
-  "Alex Kim": {
+  "alex_codes": {
     id: "Alex Kim",
     name: "Alex Kim",
     username: "alex_codes",
@@ -154,7 +154,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 3000,
     friends: []
   },
-  "Rachel Chen": {
+  "rachel_dev": {
     id: "Rachel Chen",
     name: "Rachel Chen",
     username: "rachel_dev",
@@ -171,7 +171,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2850,
     friends: []
   },
-  "David Park": {
+  "david_films": {
     id: "David Park",
     name: "David Park",
     username: "david_films",
@@ -188,7 +188,7 @@ export const discoverableMemberProfiles: { [key: string]: MemberProfile } = {
     emeraldScore: 2750,
     friends: []
   },
-  "Isabella Santos": {
+  "isabella_cinema": {
     id: "Isabella Santos",
     name: "Isabella Santos",
     username: "isabella_cinema",

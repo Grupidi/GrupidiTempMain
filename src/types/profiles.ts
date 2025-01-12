@@ -17,12 +17,12 @@ export interface GroupProfile {
   id: string;
   name: string;
   username: string;
-  description: string;
+  bio: string;
   ageRange: string;
   avgAge: number;
   location: string;
+  locationCoordinates?: { lat: number; lng: number } | null;
   members: string[];
-  bio: string;
   interests: string[];
   quirks: string[];
   images: string[];
@@ -35,6 +35,7 @@ export interface FriendRequest {
   bio: string;
   location: string;
   profilePicture: string;
+  status?: 'pending';
 }
 
 export interface PotentialFollower {
@@ -62,3 +63,11 @@ export function createDefaultMemberProfile(): MemberProfile {
     friends: []
   };
 }
+
+export type ProfileStatus = 
+  | 'none'        // No relationship
+  | 'following'   // We follow them
+  | 'follower'    // They follow us
+  | 'friend'      // Mutual friendship
+  | 'pending'     // They sent us a request and are following us
+  | 'requested';  // We sent them a request

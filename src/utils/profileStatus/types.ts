@@ -3,10 +3,10 @@ import { MemberProfile, PotentialFollower, FriendRequest } from '../../types/pro
 export type ProfileStatus = 'friend' | 'following' | 'follower' | 'none';
 
 export interface ProfileStatusContext {
-  currentUser: MemberProfile | null;
-  followedUsers: PotentialFollower[];
-  friendRequests: FriendRequest[];
-  memberProfiles?: { [key: string]: MemberProfile };
+  currentUser: MemberProfile;
+  followedUsers: any[];
+  friendRequests: any[];
+  requestedProfiles?: Set<string>;
 }
 
 export interface ProfileVisibility {

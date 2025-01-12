@@ -1,38 +1,31 @@
 import { MemberProfile } from '../../types/profiles';
 
-export function getGroupMembers(memberIds: string[], memberProfiles: { [key: string]: MemberProfile }) {
+export function getGroupMembers(
+  memberIds: string[],
+  memberProfiles: { [key: string]: MemberProfile }
+) {
   console.log('Getting members for:', { 
     memberIds, 
-    availableUsernames: Object.keys(memberProfiles),
-    memberProfiles 
+    availableUsernames: Object.keys(memberProfiles)
   });
-  
+
   return memberIds
-    .map(id => {
+    .map(memberId => {
       // Remove @ symbol if present
-      const cleanId = id.startsWith('@') ? id.substring(1) : id;
+      const cleanId = memberId.replace('@', '');
       
-      // Try direct lookup first
-      let member = memberProfiles[cleanId];
-      
-      // If not found, try to find by name
-      if (!member) {
-        member = Object.values(memberProfiles).find(
-          profile => 
-            profile.username === cleanId || 
-            profile.name === cleanId ||
-            profile.id === cleanId
+      // Try different ways to find the member
+      const member = memberProfiles[cleanId] || 
+        Object.values(memberProfiles).find(profile => 
+          profile.username === cleanId ||
+          profile.id === cleanId ||
+          profile.name.toLowerCase().replace(/\s+/g, '_') === cleanId
         );
-      }
-      
+
       if (!member) {
         console.warn(`Member not found for ID: ${cleanId}`);
-        console.log('Available profiles:', Object.keys(memberProfiles));
-        console.log('Looking for:', cleanId);
-      } else {
-        console.log('Found member:', member);
       }
-      
+
       return member;
     })
     .filter((member): member is MemberProfile => member !== undefined);

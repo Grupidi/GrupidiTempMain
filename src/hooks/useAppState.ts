@@ -7,11 +7,17 @@ import { initialFriendRequests } from '../data/friendRequests';
 import { calculateGroupAgeStats } from '../utils/groupAgeCalculations';
 
 export function useAppState() {
-  const [memberProfiles, setMemberProfiles] = useState<{ [key: string]: MemberProfile }>(initialMemberProfiles);
+  const [memberProfiles, setMemberProfiles] = useState<{ [key: string]: MemberProfile }>(
+    initialMemberProfiles
+  );
   const [groupProfiles, setGroupProfiles] = useState<{ [key: string]: GroupProfile }>(initialGroupProfiles);
   const [savedGroups, setSavedGroups] = useState<{ [key: string]: GroupProfile }>({});
   const [followedUsers, setFollowedUsers] = useState<PotentialFollower[]>(initialFollowedUsers);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>(initialFriendRequests);
+
+  useEffect(() => {
+    console.log('Initial member profiles:', memberProfiles);
+  }, []);
 
   const updateMemberProfile = useCallback((memberId: string, updates: Partial<MemberProfile>) => {
     setMemberProfiles(prev => ({
@@ -53,32 +59,15 @@ export function useAppState() {
 
   // Update group age stats whenever member profiles change
   useEffect(() => {
-    console.log('Member profiles changed, updating group ages');
+    if (!memberProfiles) return;
     
-    setGroupProfiles(prevGroups => {
-      const updatedGroups = { ...prevGroups };
-      
-      Object.keys(updatedGroups).forEach(groupId => {
-        const group = updatedGroups[groupId];
-        console.log(`Updating group: ${group.name}`, group);
+    // Add a debounce to prevent rapid updates
+    const timeoutId = setTimeout(() => {
+      console.log('Member profiles changed, updating group ages');
+      updateGroupAges();
+    }, 500);
 
-        if (!group?.members?.length) {
-          console.log(`No members found for group: ${group.name}`);
-          return;
-        }
-
-        const ageStats = calculateGroupAgeStats(group.members, memberProfiles);
-        console.log(`New age stats for ${group.name}:`, ageStats);
-
-        updatedGroups[groupId] = {
-          ...group,
-          ageRange: ageStats.ageRange,
-          avgAge: ageStats.avgAge
-        };
-      });
-      
-      return updatedGroups;
-    });
+    return () => clearTimeout(timeoutId);
   }, [memberProfiles]);
 
   // Add a function to manually trigger age updates
