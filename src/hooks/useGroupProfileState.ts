@@ -40,6 +40,21 @@ export function useGroupProfileState(groupProfile?: GroupProfile) {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
+  const handleUpdateProfile = async (updates: Partial<GroupProfile>) => {
+    try {
+      // Update parent state first
+      await updateGroupProfile(updates);
+      
+      // Then update local state
+      updateState({
+        [`edited${field}`]: value,
+        [`isEditing${field}`]: false
+      });
+    } catch (error) {
+      console.error('Failed to update:', error);
+    }
+  };
+
   return {
     state,
     updateState

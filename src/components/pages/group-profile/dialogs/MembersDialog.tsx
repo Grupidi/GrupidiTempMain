@@ -4,219 +4,129 @@ import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../ui/avatar";
 import { User, UserPlus, UserMinus } from 'lucide-react';
-import { MemberProfile } from "../../../../types/profiles";
+import { MemberProfile } from '../../../../types/profiles';
 
 interface MembersDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  groupProfile: {
-    id: string;
-    name: string;
-    members: string[];
-  };
+  members: MemberProfile[];
   memberProfiles: { [key: string]: MemberProfile };
-  onUpdateMembers: (members: string[]) => void;
-  canEdit: boolean;
-}
-
-// Helper functions at the top
-function normalizeUsername(username: string): string {
-  if (!username) return '';
-  return username.replace(/^@/, '').toLowerCase();
+  onAddMember?: (username: string) => void;
+  onRemoveMember?: (username: string) => void;
+  canEdit?: boolean;
 }
 
 export function MembersDialog({
   isOpen,
   onClose,
-  groupProfile,
+  members,
   memberProfiles,
-  onUpdateMembers,
-  canEdit
+  onAddMember,
+  onRemoveMember,
+  canEdit = false
 }: MembersDialogProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Debug logging
-  console.log('MembersDialog data:', {
-    groupProfile,
-    memberProfiles,
-    members: groupProfile.members,
-    normalizedMembers: groupProfile.members.map(m => normalizeUsername(m))
-  });
-
-  // Add null check for members
-  const validMembers = groupProfile?.members ? 
-    groupProfile.members
-      .map(memberId => {
-        const normalizedId = normalizeUsername(memberId);
-        let member = memberProfiles[normalizedId] ||
-          Object.values(memberProfiles).find(profile => 
-            normalizeUsername(profile.username) === normalizedId ||
-            normalizeUsername(profile.id) === normalizedId ||
-            normalizeUsername(profile.name) === normalizedId
-          );
-
-        if (!member) {
-          console.warn(`Member not found for ID: ${memberId}`);
-        }
-        return member;
-      })
-      .filter((member): member is MemberProfile => member !== undefined)
-    : [];
-
-  // Fix: Properly filter current members
-  const currentMembers = Object.values(memberProfiles)
-    .filter(member => 
-      groupProfile.members.some(m => {
-        const normalizedMember = normalizeUsername(m);
-        const isMatch = 
-          normalizedMember === normalizeUsername(member.username) ||
-          normalizedMember === normalizeUsername(member.id) ||
-          normalizedMember === normalizeUsername(member.name);
-        
-        if (isMatch) {
-          console.log('Matched member:', { 
-            memberName: member.name, 
-            username: member.username,
-            normalizedMember,
-            groupMember: m 
-          });
-        }
-        return isMatch;
-      })
+  // Ensure members and memberProfiles are defined before filtering
+  const filteredMembers = members?.filter(member => {
+    const profile = memberProfiles[member.username];
+    return profile && (
+      profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profile.username?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  }) || [];
 
-  // Fix: Properly filter available members
-  const availableMembers = Object.values(memberProfiles)
-    .filter(member => 
-      !groupProfile.members.some(m => 
-        normalizeUsername(m) === normalizeUsername(member.username) ||
-        normalizeUsername(m) === normalizeUsername(member.id) ||
-        normalizeUsername(m) === normalizeUsername(member.name)
-      )
-    );
-
-  // Filter based on search query
-  const filteredCurrentMembers = currentMembers.filter(member =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredAvailableMembers = availableMembers.filter(member =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Fix: Properly handle member removal
-  const handleRemoveMember = (memberId: string) => {
-    const member = memberProfiles[memberId];
-    if (!member) return;
+  // Filter available profiles for adding new members
+  const availableProfiles = Object.values(memberProfiles || {}).filter(profile => {
+    // Ensure profile and username exist before using toLowerCase
+    if (!profile?.username) return false;
     
-    // Use username for consistency
-    const updatedMembers = groupProfile.members.filter(m => 
-      normalizeUsername(m) !== member.username
+    const isAlreadyMember = members?.some(member => 
+      member.username?.toLowerCase() === profile.username?.toLowerCase()
     );
-    onUpdateMembers(updatedMembers);
-  };
-
-  // Fix: Properly handle member addition
-  const handleAddMember = (memberId: string) => {
-    const member = memberProfiles[memberId];
-    if (!member) return;
-
-    // Use username for consistency
-    if (!groupProfile.members.some(m => normalizeUsername(m) === member.username)) {
-      const updatedMembers = [...groupProfile.members, member.username];
-      onUpdateMembers(updatedMembers);
-    }
-  };
+    
+    return !isAlreadyMember && (
+      profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profile.username.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            {canEdit ? 'Manage Members' : 'Group Members'}
-          </DialogTitle>
+          <DialogTitle>Members</DialogTitle>
         </DialogHeader>
-        <div className="p-4 space-y-6">
-          <Input
-            placeholder="Search members..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="mb-4"
-          />
 
-          {/* Current Members Section */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg mb-4">Current Members</h3>
-            {filteredCurrentMembers.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg border"
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={member.profilePicture} alt={member.name} />
+        <Input
+          placeholder="Search members..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-4"
+        />
+
+        <div className="space-y-4">
+          {/* Current Members */}
+          {filteredMembers.map(member => {
+            const profile = memberProfiles[member.username];
+            if (!profile) return null;
+
+            return (
+              <div key={profile.username} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={profile.avatarUrl} />
                     <AvatarFallback>
-                      <User className="h-6 w-6 text-gray-400" />
+                      <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-lg">{member.name}</p>
-                    <p className="text-gray-500">@{member.username}</p>
+                    <div className="font-medium">{profile.name}</div>
+                    <div className="text-sm text-gray-500">@{profile.username}</div>
                   </div>
                 </div>
-                
-                {canEdit && member.name !== "Alice Johnson" && (
+                {canEdit && onRemoveMember && (
                   <Button
                     variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveMember(member.id)}
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    size="icon"
+                    onClick={() => onRemoveMember(profile.username)}
                   >
-                    <UserMinus className="h-5 w-5 mr-2" />
-                    Remove
+                    <UserMinus className="h-4 w-4" />
                   </Button>
                 )}
               </div>
-            ))}
-          </div>
+            );
+          })}
 
-          {/* Available Members Section */}
-          {canEdit && filteredAvailableMembers.length > 0 && (
-            <div className="mt-8">
-              <h3 className="font-semibold text-lg mb-4">Add Members</h3>
-              <div className="space-y-4">
-                {filteredAvailableMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg border"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={member.profilePicture} alt={member.name} />
-                        <AvatarFallback>
-                          <User className="h-6 w-6 text-gray-400" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-lg">{member.name}</p>
-                        <p className="text-gray-500">@{member.username}</p>
-                      </div>
+          {/* Available Profiles to Add */}
+          {canEdit && onAddMember && (
+            <>
+              <div className="border-t my-4" />
+              <div className="text-sm text-gray-500 mb-2">Add Members</div>
+              {availableProfiles.map(profile => (
+                <div key={profile.username} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={profile.avatarUrl} />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{profile.name}</div>
+                      <div className="text-sm text-gray-500">@{profile.username}</div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAddMember(member.id)}
-                      className="text-green-500 hover:text-green-600 hover:bg-green-50"
-                    >
-                      <UserPlus className="h-5 w-5 mr-2" />
-                      Add
-                    </Button>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onAddMember(profile.username)}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </>
           )}
         </div>
       </DialogContent>

@@ -1,9 +1,12 @@
-import { Button } from "../../ui/button";
-import { ImageGallery } from './GroupImageGallery';
-import { MemberProfile } from '../../../types/profiles';
-import { getGroupMembers } from '../../../utils/groups/members';
 import { Avatar, AvatarImage, AvatarFallback } from "../../ui/avatar";
+import { Button } from "../../ui/button";
 import { User } from "lucide-react";
+import { useRef } from 'react';
+import { ImageGallery } from './GroupImageGallery';
+import { getGroupMembers } from '../../../utils/groups/members';
+import { GroupProfile, MemberProfile } from '../../../types/profiles';
+import { GroupProfileState } from '../../../types/groupProfile';
+import { ImageHandlers } from '../../../types/imageHandlers';
 
 interface GroupProfileHeaderProps {
   groupProfile: GroupProfile;
@@ -13,22 +16,10 @@ interface GroupProfileHeaderProps {
   isMember?: boolean;
   state: GroupProfileState;
   updateState: (updates: Partial<GroupProfileState>) => void;
-  imageHandlers: {
-    isImageExpanded: boolean;
-    setIsImageExpanded: (value: boolean) => void;
-    currentImageIndex: number;
-    handleNextImage: () => void;
-    handlePreviousImage: () => void;
-    handleCameraClick: () => void;
-    handleReplaceImage: (index: number) => void;
-    handleDeleteImage: (index: number) => void;
-    fileInputRef: React.RefObject<HTMLInputElement>;
-    replaceFileInputRef: React.RefObject<HTMLInputElement>;
-    handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  };
+  imageHandlers: ImageHandlers;
 }
 
-export function GroupProfileHeader({ 
+export function GroupProfileHeader({
   groupProfile,
   memberProfiles,
   onMemberClick,
@@ -38,16 +29,101 @@ export function GroupProfileHeader({
   updateState,
   imageHandlers
 }: GroupProfileHeaderProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const members = groupProfile?.members ? getGroupMembers(groupProfile.members, memberProfiles) : [];
   const canEdit = isMember && !isSavedGroup;
 
+  const handleImageClick = () => {
+    console.log('🔵 Profile image clicked');
+    updateState({ isImageExpanded: true });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      console.log('❌ [GroupProfileHeader] No file selected');
+      return;
+    }
+
+    try {
+      console.log('⏳ [GroupProfileHeader] Processing file:', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      });
+
+      // Verify imageHandlers object
+      if (!imageHandlers) {
+        console.error('❌ [GroupProfileHeader] imageHandlers is undefined');
+        return;
+      }
+
+      // Log the entire imageHandlers object
+      console.log('🔵 [GroupProfileHeader] Full imageHandlers object:', {
+        handlers: imageHandlers,
+        keys: Object.keys(imageHandlers),
+        addImageType: typeof imageHandlers.handleAddImage,
+        handlersType: typeof imageHandlers
+      });
+
+      if (typeof imageHandlers.handleAddImage !== 'function') {
+        console.error('❌ [GroupProfileHeader] handleAddImage is not a function:', {
+          handleAddImage: imageHandlers.handleAddImage,
+          type: typeof imageHandlers.handleAddImage
+        });
+        return;
+      }
+
+      const imageUrl = URL.createObjectURL(file);
+      console.log('✅ [GroupProfileHeader] Created image URL:', imageUrl);
+
+      await imageHandlers.handleAddImage(imageUrl);
+      console.log('✅ [GroupProfileHeader] Image added successfully');
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('❌ [GroupProfileHeader] Failed to add image:', error);
+    }
+  };
+
+  const handleReplaceFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      console.log('❌ [GroupProfileHeader] No file selected for replacement');
+      return;
+    }
+
+    try {
+      const imageUrl = URL.createObjectURL(file);
+      console.log('✅ [GroupProfileHeader] Created image URL for replacement:', imageUrl);
+
+      if (typeof imageHandlers?.handleReplaceImage !== 'function') {
+        console.error('❌ [GroupProfileHeader] handleReplaceImage is missing or not a function');
+        return;
+      }
+
+      await imageHandlers.handleReplaceImage(state.currentImageIndex, imageUrl);
+      console.log('✅ [GroupProfileHeader] Image replaced successfully');
+
+      if (replaceFileInputRef.current) {
+        replaceFileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('❌ [GroupProfileHeader] Failed to replace image:', error);
+    }
+  };
+
   return (
     <div className="bg-pink-500 p-6 relative">
+      {/* Header Content */}
       <div className="flex gap-6">
         <div className="flex-shrink-0">
           <div 
             className="w-24 h-24 border-4 border-white rounded-full overflow-hidden cursor-pointer mb-4"
-            onClick={() => imageHandlers.setIsImageExpanded(true)}
+            onClick={handleImageClick}
           >
             <img 
               src={groupProfile.images[0]}
@@ -90,18 +166,38 @@ export function GroupProfileHeader({
       <ImageGallery
         images={groupProfile.images}
         groupName={groupProfile.name}
-        isOpen={imageHandlers.isImageExpanded}
-        onClose={() => imageHandlers.setIsImageExpanded(false)}
-        currentIndex={imageHandlers.currentImageIndex}
+        isOpen={state.isImageExpanded}
+        onClose={() => updateState({ isImageExpanded: false })}
+        currentIndex={state.currentImageIndex}
         onNext={imageHandlers.handleNextImage}
         onPrevious={imageHandlers.handlePreviousImage}
-        onAddImage={imageHandlers.handleCameraClick}
-        onReplaceImage={imageHandlers.handleReplaceImage}
+        onAddImage={() => fileInputRef.current?.click()}
+        onReplaceImage={(index) => {
+          updateState({ currentImageIndex: index });
+          replaceFileInputRef.current?.click();
+        }}
         onDeleteImage={imageHandlers.handleDeleteImage}
         isMember={isMember}
-        fileInputRef={imageHandlers.fileInputRef}
-        replaceFileInputRef={imageHandlers.replaceFileInputRef}
-        handleFileSelect={imageHandlers.handleFileSelect}
+        canEdit={canEdit}
+        fileInputRef={fileInputRef}
+        replaceFileInputRef={replaceFileInputRef}
+        handleFileSelect={handleFileSelect}
+        handleReplaceFileSelect={handleReplaceFileSelect}
+      />
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={replaceFileInputRef}
+        accept="image/*"
+        onChange={handleReplaceFileSelect}
+        className="hidden"
       />
     </div>
   );
