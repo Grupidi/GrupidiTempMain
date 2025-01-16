@@ -20,14 +20,17 @@ export default function ProfilePage({
   groupProfiles,
   followedUsers 
 }: ProfilePageProps) {
-  // Add local state to track profile updates
+  // Local state to track profile updates
   const [localProfile, setLocalProfile] = useState(profile);
-  const state = useProfileState(localProfile);
   
   // Update local state when profile prop changes
   useEffect(() => {
     setLocalProfile(profile);
   }, [profile]);
+
+  // Use localProfile for all operations
+  const profileState = useProfileState();
+  console.log('ProfilePage state:', profileState);
 
   // Create a memoized update handler
   const handleProfileUpdate = useCallback(async (updates: Partial<typeof profile>) => {
@@ -48,12 +51,21 @@ export default function ProfilePage({
   }, [onUpdateProfile, profile.username]);
 
   // Pass the memoized handler to useProfileImages
-  const imageHandlers = useProfileImages(localProfile, handleProfileUpdate);
+  const imageHandlers = useProfileImages(
+    localProfile, 
+    handleProfileUpdate,
+    profileState,
+    profileState.updateState
+  );
+  console.log('ImageHandlers created with:', { 
+    hasImages: localProfile.images?.length > 0,
+    state: profileState
+  });
   
   const handlers = useProfileHandlers({ 
     profile: localProfile, 
     onUpdateProfile: handleProfileUpdate, 
-    state 
+    state: profileState
   });
 
   const currentTier = getCurrentTier(localProfile.emeraldScore);
@@ -85,7 +97,7 @@ export default function ProfilePage({
           profile={localProfile}
           currentTier={currentTier}
           imageHandlers={imageHandlers}
-          state={state}
+          state={profileState}
           handlers={handlers}
           onNavigate={onNavigate}
           onUpdateProfile={handleProfileUpdate}
@@ -93,14 +105,14 @@ export default function ProfilePage({
 
         <ProfileContent
           profile={localProfile}
-          state={state}
+          state={profileState}
           counts={{ groupCount, friendsCount, followingCount }}
           onNavigate={onNavigate}
         />
 
         <ProfileDialogs
           profile={localProfile}
-          state={state}
+          state={profileState}
           handlers={handlers}
         />
 
